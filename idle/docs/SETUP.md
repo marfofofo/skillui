@@ -118,6 +118,30 @@ Required on iOS as soon as any other third-party sign-in is offered.
 
 ---
 
+## CAN SOMEONE ACTUALLY SIGN UP?
+
+```bash
+npm run preflight                              # what is missing
+npm run preflight -- --email you@example.com   # and does a magic link really arrive
+```
+
+It asks the hosted project, in the order a new person meets each step: does the
+project answer, is the schema applied, do the functions a new account needs
+exist, are the edge functions deployed, what can auth do — and, with `--email`,
+it sends a real magic link, which is the one thing that cannot be inferred.
+
+If it cannot reach the project it **stops** rather than answering the rest. Every
+check below the first reads a status code, and a proxy denying the connection
+returns one too — an earlier version of this script cheerfully reported "the
+schema is applied" while nothing had reached the server at all.
+
+## DEPLOYING BEFORE THE BACKEND IS READY
+
+Fine, and it says so. A build with no environment variables renders a page naming
+the two that are missing rather than a white screen, and if the schema was never
+pushed, choosing a handle says "the database has no schema yet" instead of
+surfacing a PostgREST error code.
+
 ## VERIFYING IT WORKS
 
 ```bash

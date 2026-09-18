@@ -11,6 +11,8 @@ import {
 } from "@expo-google-fonts/instrument-sans";
 import { GeistMono_400Regular, GeistMono_500Medium } from "@expo-google-fonts/geist-mono";
 import { SessionProvider } from "@/lib/session";
+import { SUPABASE_CONFIGURED } from "@/lib/supabase";
+import { NotConfigured } from "@/design/NotConfigured";
 import { COLOR } from "@/design/tokens";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -38,6 +40,16 @@ export default function RootLayout() {
   // One family, or nothing. A fallback font would be a different product.
   if (!fontsLoaded && !fontError) {
     return <View style={{ flex: 1, backgroundColor: COLOR.canvas }} />;
+  }
+
+  // A deploy without environment variables is the likeliest thing to be wrong on
+  // day one, and a white screen tells nobody anything.
+  if (!SUPABASE_CONFIGURED) {
+    return (
+      <SafeAreaProvider>
+        <NotConfigured />
+      </SafeAreaProvider>
+    );
   }
 
   return (

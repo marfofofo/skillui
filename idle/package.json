@@ -16,7 +16,8 @@
     "test": "npm run test --workspaces --if-present && npm run db:test && npm run test:loop",
     "lint": "npm run lint --workspaces --if-present",
     "db:test": "bash supabase/tests/run.sh",
-    "test:loop": "node --test test/presence-loop.test.mjs"
+    "test:loop": "node --test test/presence-loop.test.mjs",
+    "preflight": "node scripts/preflight.mjs"
   },
   "engines": {
     "node": ">=20"

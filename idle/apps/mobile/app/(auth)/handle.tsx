@@ -29,9 +29,18 @@ export default function ChooseHandle() {
       const message = e instanceof Error ? e.message : "unknown";
       const taken = message.includes("duplicate") || message.includes("unique");
       const reserved = message.includes("reserved");
+      // PostgREST answers a function that does not exist with this. It means the
+      // migrations were never pushed, which is a setup problem, not a handle one.
+      const noSchema =
+        message.includes("Could not find the function") || message.includes("PGRST202");
+
       Alert.alert(
-        taken ? "Taken" : reserved ? "Reserved" : "Could not claim",
-        taken || reserved ? "Pick another one." : message,
+        taken ? "Taken" : reserved ? "Reserved" : noSchema ? "Backend not set up" : "Could not claim",
+        taken || reserved
+          ? "Pick another one."
+          : noSchema
+            ? "The database has no schema yet. Run ./scripts/setup.sh against the project."
+            : message,
       );
     } finally {
       setBusy(false);

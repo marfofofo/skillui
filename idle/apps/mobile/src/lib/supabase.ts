@@ -9,11 +9,13 @@ import { Platform } from "react-native";
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!url || !anonKey) {
-  throw new Error(
-    "Missing EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY. Copy .env.example to .env.",
-  );
-}
+/**
+ * Throwing here would white-screen the whole app, which is the worst possible
+ * way to tell someone their environment variables are missing — particularly on
+ * a fresh deploy, where it is the single likeliest thing to be wrong. The app
+ * checks this and says so in words instead.
+ */
+export const SUPABASE_CONFIGURED = !!url && !!anonKey;
 
 /**
  * Session tokens live in the device keychain, not AsyncStorage. SecureStore has
@@ -50,7 +52,7 @@ const secureAdapter = {
   },
 };
 
-export const supabase = createClient(url, anonKey, {
+export const supabase = createClient(url ?? "https://unconfigured.invalid", anonKey ?? "unconfigured", {
   auth: {
     // Native keeps the session in the device keychain. On web there is no
     // keychain and supabase-js already defaults to localStorage, so passing

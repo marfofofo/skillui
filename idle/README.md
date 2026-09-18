@@ -86,6 +86,7 @@ npm run mobile                   # expo start
 npm test --workspace=idle-agent  # 35 CLI tests: privacy, settings merging, e2e
 npm run db:test                  # 148 database assertions, no Docker needed
 npm run test:loop                # the whole presence loop: terminal -> light
+npm run preflight                # can a person actually sign up yet?
 ```
 
 `npm run db:test` applies every migration to a throwaway PostgreSQL database and
