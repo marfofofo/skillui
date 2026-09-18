@@ -3,6 +3,7 @@
 
 import { supabase } from "./supabase";
 import type {
+  Agent,
   Device,
   Friend,
   FriendRequest,
@@ -66,6 +67,21 @@ export async function rotateInviteCode(): Promise<string> {
   return unwrap(await supabase.rpc("rotate_invite_code"));
 }
 
+/** Your own row. RLS lets you read yourself; the hidden columns stay hidden. */
+export async function getMyPresence(): Promise<{ is_live: boolean; agent: Agent | null } | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return null;
+
+  const { data, error } = await supabase
+    .from("presence")
+    .select("is_live, agent")
+    .eq("user_id", auth.user.id)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 // --- the list ---------------------------------------------------------------
 
 export async function getFriends(): Promise<Friend[]> {
@@ -77,6 +93,16 @@ export async function getSuggestions(limit = 20): Promise<Suggestion[]> {
 }
 
 // --- adding people ----------------------------------------------------------
+
+export type ContactMatch = {
+  /** The hash the caller sent, echoed so the phone can pair it with a name. */
+  hash: string;
+  user_id: string;
+  handle: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  relationship: Relationship;
+};
 
 export type InvitePreview = {
   user_id: string;
@@ -152,6 +178,41 @@ export async function reportUser(
     p_detail: detail ?? null,
     p_also_block: alsoBlock,
   });
+  if (error) throw new Error(error.message);
+}
+
+// --- contacts ---------------------------------------------------------------
+//
+// See supabase/migrations/20260918000600_contacts.sql for why this is two calls
+// and not one. The short version: the first call carries 16-bit buckets, not
+// addresses, so nothing identifying about a non-user ever reaches the server.
+
+/** Not a secret — it ships in the app. It only raises the cost of a generic
+ *  precomputed table of email hashes. */
+export async function getContactPepper(): Promise<string> {
+  return unwrap(await supabase.rpc("contact_pepper"));
+}
+
+/** Step 1: buckets in, the hashes of registered users out. No identity. */
+export async function getContactBuckets(prefixes: string[]): Promise<string[]> {
+  const rows = unwrap<{ hash: string }[]>(
+    await supabase.rpc("contact_buckets", { p_prefixes: prefixes }),
+  );
+  return (rows ?? []).map((row) => row.hash);
+}
+
+/** Step 2: the hashes that matched belong to users. Now, and only now, identity. */
+export async function getContactMatches(hashes: string[]): Promise<ContactMatch[]> {
+  return unwrap(await supabase.rpc("contact_matches", { p_hashes: hashes })) ?? [];
+}
+
+export async function setDiscoverableByContact(value: boolean): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return;
+  const { error } = await supabase
+    .from("user_settings")
+    .update({ discoverable_by_contact: value })
+    .eq("user_id", auth.user.id);
   if (error) throw new Error(error.message);
 }
 

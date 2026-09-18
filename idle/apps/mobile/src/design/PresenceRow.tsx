@@ -1,11 +1,13 @@
-// "IDLE" — the row. This is the product.
+// IDLE — a person.
 //
-// The 3% (BRAND.md §02): an online friend is not marked with a green dot. The
-// whole row inverts. The lights literally come on.
+// One glance: a light, a name, and what they are speaking through. The row is a
+// fixed height whether the lamp is on or off, so presence changing never moves
+// anything else on the screen.
 
 import { Pressable, View } from "react-native";
-import { usePalette, useInvertedPalette, SPACE, GUTTER, HAIRLINE } from "./tokens";
+import { COLOR, SPACE, ROW_HEIGHT, RADIUS } from "./tokens";
 import { T } from "./Text";
+import { Lamp } from "./Lamp";
 import { AGENT_LABEL, type Agent } from "@/lib/types";
 
 type Props = {
@@ -17,57 +19,37 @@ type Props = {
 };
 
 export function PresenceRow({ handle, isLive, agent, onPress, trailing }: Props) {
-  const page = usePalette();
-  const inverted = useInvertedPalette();
-
-  // A live row is not the page with different colours — it IS the other mode.
-  // Rendering it from the inverted palette means every contrast pairing that
-  // holds on the page holds here too, in both themes, for free.
-  const palette = isLive ? inverted : page;
-
-  const background = isLive ? palette.paper : "transparent";
-  const foreground = palette.ink;
-
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole={onPress ? "button" : undefined}
       accessibilityLabel={
         isLive
-          ? `${handle}, building, care of ${AGENT_LABEL[agent ?? "claude_code"]}`
+          ? `${handle}, building, via ${AGENT_LABEL[agent ?? "claude_code"]}`
           : `${handle}, idle`
       }
       style={({ pressed }) => ({
-        backgroundColor: background,
-        opacity: pressed ? 0.85 : 1,
-        borderBottomWidth: isLive ? 0 : HAIRLINE,
-        borderBottomColor: page.hairline,
-        paddingVertical: SPACE.m,
-        paddingHorizontal: isLive ? GUTTER : 0,
-        marginHorizontal: isLive ? -GUTTER : 0,
+        height: ROW_HEIGHT,
         flexDirection: "row",
         alignItems: "center",
+        gap: SPACE.m,
+        paddingHorizontal: SPACE.s,
+        marginHorizontal: -SPACE.s,
+        borderRadius: RADIUS.row,
+        backgroundColor: pressed ? COLOR.raise : "transparent",
       })}
     >
-      <T variant="name" style={{ color: foreground, flexShrink: 1 }} numberOfLines={1}>
+      <Lamp on={isLive} />
+
+      <T variant="name" tone={isLive ? "text" : "dim"} numberOfLines={1} style={{ flexShrink: 1 }}>
         {handle}
       </T>
 
       <View style={{ flex: 1 }} />
 
-      {/* MARCUS          c/o   CLAUDE CODE  — BRAND.md §03 */}
-      <T variant="mono" style={{ color: palette.concrete, marginRight: SPACE.m }}>
-        c/o
+      <T variant="mono" tone="faint">
+        {isLive ? AGENT_LABEL[agent ?? "claude_code"] : "—"}
       </T>
-      {isLive ? (
-        <T variant="mono" style={{ color: palette.signalText }}>
-          {AGENT_LABEL[agent ?? "claude_code"]}
-        </T>
-      ) : (
-        <T variant="mono" style={{ color: palette.concrete }}>
-          —
-        </T>
-      )}
 
       {trailing}
     </Pressable>

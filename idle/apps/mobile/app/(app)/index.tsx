@@ -1,47 +1,59 @@
-// "IDLE" — THE LIST.
+// IDLE — the list.
 //
-// Not a feed. Not content. People, sorted by whether they are awake.
+// Not a feed. Not content. People, and which of them are awake.
 
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { Screen } from "@/design/Screen";
-import { T, Meta } from "@/design/Text";
+import { T, Label } from "@/design/Text";
+import { Lamp } from "@/design/Lamp";
+import { IconButton } from "@/design/Icon";
 import { PresenceRow } from "@/design/PresenceRow";
-import { IdleDivider } from "@/design/Hazard";
-import { usePalette, SPACE, GUTTER } from "@/design/tokens";
+import { COLOR, SPACE, GUTTER, HAIRLINE } from "@/design/tokens";
 import { useFriends } from "@/lib/presence";
-import { getIncomingRequests, getSuggestions } from "@/lib/api";
-import type { Friend } from "@/lib/types";
+import { getIncomingRequests, getMyPresence, getSuggestions } from "@/lib/api";
+import { AGENT_LABEL, type Agent, type Friend } from "@/lib/types";
+import { useSession } from "@/lib/session";
 
 type Row =
+  | { kind: "section"; label: string }
   | { kind: "friend"; friend: Friend }
-  | { kind: "divider" }
+  | { kind: "rule" }
   | { kind: "suggestions"; count: number };
 
+function clock() {
+  return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 export default function TheList() {
-  const palette = usePalette();
+  const { profile } = useSession();
   const { live, idle, loading, refresh } = useFriends();
   const [refreshing, setRefreshing] = useState(false);
   const [requestCount, setRequestCount] = useState(0);
   const [suggestionCount, setSuggestionCount] = useState(0);
+  const [me, setMe] = useState<{ is_live: boolean; agent: Agent | null } | null>(null);
+  const [now, setNow] = useState(clock);
 
   const loadBadges = useCallback(async () => {
     try {
-      const [requests, suggestions] = await Promise.all([
+      const [requests, suggestions, mine] = await Promise.all([
         getIncomingRequests(),
         getSuggestions(20),
+        getMyPresence(),
       ]);
       setRequestCount(requests.length);
       setSuggestionCount(suggestions.length);
+      setMe(mine);
     } catch {
       // A badge is not worth an error state.
     }
   }, []);
 
   useEffect(() => {
-    loadBadges();
-  }, [loadBadges]);
+    const timer = setInterval(() => setNow(clock()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -56,81 +68,76 @@ export default function TheList() {
     setRefreshing(false);
   }
 
+  const total = live.length + idle.length;
+
   const rows: Row[] = [
-    ...live.map((friend) => ({ kind: "friend" as const, friend })),
-    ...(idle.length > 0 ? [{ kind: "divider" as const }] : []),
-    ...idle.map((friend) => ({ kind: "friend" as const, friend })),
-    ...(suggestionCount > 0 ? [{ kind: "suggestions" as const, count: suggestionCount }] : []),
+    ...(live.length > 0
+      ? ([{ kind: "section", label: "Awake" }] as Row[]).concat(
+          live.map((friend) => ({ kind: "friend" as const, friend })),
+        )
+      : []),
+    ...(idle.length > 0
+      ? ([{ kind: "rule" }, { kind: "section", label: "Idle" }] as Row[]).concat(
+          idle.map((friend) => ({ kind: "friend" as const, friend })),
+        )
+      : []),
+    ...(suggestionCount > 0
+      ? [{ kind: "suggestions" as const, count: suggestionCount }]
+      : []),
   ];
 
-  const nobody = !loading && live.length === 0 && idle.length === 0;
+  const nobody = !loading && total === 0;
 
   return (
     <Screen gutter={false}>
-      {/* HEADER */}
-      <View style={{ paddingHorizontal: GUTTER, marginBottom: SPACE.l }}>
-        <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-          <View style={{ flex: 1 }}>
-            <T variant="title">&quot;IDLE&quot;</T>
-            <T variant="mono" tone="concrete" style={{ marginTop: SPACE.xs }}>
-              {live.length > 0
-                ? `${live.length} AWAKE`
-                : "NOBODY IS BUILDING RIGHT NOW"}
-            </T>
-          </View>
-
-          <Pressable
+      <View style={{ paddingHorizontal: GUTTER }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <T variant="mono" tone="text" style={{ letterSpacing: 2.4, flex: 1 }}>
+            IDLE
+          </T>
+          <IconButton name="plus" label="Add a friend" onPress={() => router.push("/(app)/add")} />
+          <IconButton
+            name="settings"
+            label="Settings"
             onPress={() => router.push("/(app)/settings")}
-            accessibilityRole="button"
-            accessibilityLabel="Settings"
-            hitSlop={12}
-            style={{ paddingLeft: SPACE.m }}
-          >
-            <Meta>settings</Meta>
-          </Pressable>
+          />
         </View>
 
-        <View style={{ flexDirection: "row", gap: SPACE.l, marginTop: SPACE.m }}>
+        <View style={{ marginTop: SPACE.xl }}>
+          <T variant="display">
+            {live.length === 0 ? "Nobody yet" : `${live.length} awake`}
+          </T>
+          <T variant="mono" tone="faint" style={{ marginTop: SPACE.m }}>
+            {total > 0 ? `of ${total} · ${now}` : now}
+          </T>
+        </View>
+
+        {requestCount > 0 && (
           <Pressable
-            onPress={() => router.push("/(app)/add")}
+            onPress={() => router.push("/(app)/requests")}
             accessibilityRole="button"
-            accessibilityLabel="Add a friend"
-            hitSlop={8}
+            accessibilityLabel={`${requestCount} friend requests waiting`}
+            style={{ marginTop: SPACE.l, flexDirection: "row", alignItems: "center", gap: SPACE.s }}
           >
-            <T variant="mono">+ ADD</T>
+            <T variant="mono" tone="text">
+              {requestCount} waiting
+            </T>
           </Pressable>
-
-          {requestCount > 0 && (
-            <Pressable
-              onPress={() => router.push("/(app)/requests")}
-              accessibilityRole="button"
-              accessibilityLabel={`${requestCount} friend requests`}
-              hitSlop={8}
-            >
-              <T variant="mono" style={{ color: palette.signalText }}>
-                {requestCount} WAITING
-              </T>
-            </Pressable>
-          )}
-        </View>
+        )}
       </View>
 
       {nobody ? (
         <View style={{ flex: 1, paddingHorizontal: GUTTER, justifyContent: "center" }}>
-          {/* BRAND.md §02: not "No friends yet". */}
-          <T variant="display" numberOfLines={1} adjustsFontSizeToFit>
-            &quot;NOBODY&quot;
-          </T>
-          <T variant="body" tone="concrete" style={{ marginTop: SPACE.m }}>
+          <T variant="body" tone="dim">
             You have to know someone. Send them your code, or scan theirs.
           </T>
           <Pressable
             onPress={() => router.push("/(app)/add")}
-            style={{ marginTop: SPACE.l }}
             accessibilityRole="button"
+            style={{ marginTop: SPACE.l }}
           >
-            <T variant="mono" style={{ color: palette.signalText }}>
-              + ADD SOMEONE
+            <T variant="mono" tone="text">
+              Add someone
             </T>
           </Pressable>
         </View>
@@ -140,17 +147,26 @@ export default function TheList() {
           keyExtractor={(row, index) =>
             row.kind === "friend" ? row.friend.user_id : `${row.kind}-${index}`
           }
+          style={{ marginTop: SPACE.l }}
           contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: SPACE.xxl }}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={palette.concrete}
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLOR.faint} />
           }
           renderItem={({ item }) => {
-            if (item.kind === "divider") return <IdleDivider />;
-
+            if (item.kind === "rule") {
+              return (
+                <View
+                  style={{
+                    height: HAIRLINE,
+                    backgroundColor: COLOR.line,
+                    marginTop: SPACE.l,
+                  }}
+                />
+              );
+            }
+            if (item.kind === "section") {
+              return <Label style={{ paddingTop: SPACE.l, paddingBottom: SPACE.s }}>{item.label}</Label>;
+            }
             if (item.kind === "suggestions") {
               return (
                 <Pressable
@@ -158,14 +174,13 @@ export default function TheList() {
                   accessibilityRole="button"
                   style={{ marginTop: SPACE.xl }}
                 >
-                  <Meta>people you have in common</Meta>
-                  <T variant="name" style={{ marginTop: SPACE.xs }}>
-                    {item.count} SUGGESTED
+                  <Label>People you have in common</Label>
+                  <T variant="name" style={{ marginTop: SPACE.s }}>
+                    {item.count} suggested
                   </T>
                 </Pressable>
               );
             }
-
             return (
               <PresenceRow
                 handle={item.friend.handle}
@@ -177,6 +192,39 @@ export default function TheList() {
           }}
         />
       )}
+
+      {/* You, at the bottom, the way a terminal shows your own prompt. */}
+      <View
+        style={{
+          borderTopWidth: HAIRLINE,
+          borderTopColor: COLOR.line,
+          backgroundColor: COLOR.raise,
+          paddingHorizontal: GUTTER,
+          paddingVertical: SPACE.m,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: SPACE.m,
+        }}
+      >
+        <Lamp on={!!me?.is_live} />
+        <T variant="mono" tone="dim" numberOfLines={1} style={{ flexShrink: 1 }}>
+          {me?.is_live
+            ? `${profile?.handle ?? "you"} · ${AGENT_LABEL[me.agent ?? "claude_code"]}`
+            : `${profile?.handle ?? "you"} · idle`}
+        </T>
+        <View style={{ flex: 1 }} />
+        {!me?.is_live && (
+          <Pressable
+            onPress={() => router.push("/(app)/settings/pair")}
+            accessibilityRole="button"
+            accessibilityLabel="Pair a terminal"
+          >
+            <T variant="mono" tone="text">
+              Pair
+            </T>
+          </Pressable>
+        )}
+      </View>
     </Screen>
   );
 }

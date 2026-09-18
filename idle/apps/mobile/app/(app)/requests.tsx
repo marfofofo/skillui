@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, Pressable, View } from "react-native";
-import { router } from "expo-router";
 import { Screen } from "@/design/Screen";
-import { T, Meta } from "@/design/Text";
-import { usePalette, SPACE, HAIRLINE } from "@/design/tokens";
+import { T } from "@/design/Text";
+import { Header } from "@/design/Header";
+import { Lamp } from "@/design/Lamp";
+import { COLOR, SPACE, ROW_HEIGHT } from "@/design/tokens";
 import { getIncomingRequests, respondToRequest } from "@/lib/api";
 
 type Row = Awaited<ReturnType<typeof getIncomingRequests>>[number];
 
 export default function Requests() {
-  const palette = usePalette();
   const [rows, setRows] = useState<Row[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -17,7 +17,7 @@ export default function Requests() {
     try {
       setRows(await getIncomingRequests());
     } catch (e) {
-      Alert.alert("COULD NOT LOAD", e instanceof Error ? e.message : "unknown");
+      Alert.alert("Could not load", e instanceof Error ? e.message : "unknown");
     }
   }, []);
 
@@ -31,7 +31,7 @@ export default function Requests() {
       await respondToRequest(row.id, accept);
       setRows((current) => current.filter((r) => r.id !== row.id));
     } catch (e) {
-      Alert.alert("COULD NOT RESPOND", e instanceof Error ? e.message : "unknown");
+      Alert.alert("Could not respond", e instanceof Error ? e.message : "unknown");
     } finally {
       setBusyId(null);
     }
@@ -39,63 +39,60 @@ export default function Requests() {
 
   return (
     <Screen>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <T variant="title" style={{ flex: 1 }}>
-          WAITING
-        </T>
-        <Pressable onPress={() => router.back()} hitSlop={12} accessibilityRole="button">
-          <Meta>close</Meta>
-        </Pressable>
-      </View>
+      <Header title="Waiting" />
 
       <FlatList
         data={rows}
         keyExtractor={(row) => row.id}
-        style={{ marginTop: SPACE.l }}
         ListEmptyComponent={
-          <T variant="body" tone="concrete">
+          <T variant="body" tone="dim">
             Nobody is waiting.
           </T>
         }
         renderItem={({ item }) => (
           <View
             style={{
-              paddingVertical: SPACE.m,
-              borderBottomWidth: HAIRLINE,
-              borderBottomColor: palette.hairline,
+              height: ROW_HEIGHT,
               flexDirection: "row",
               alignItems: "center",
+              gap: SPACE.m,
             }}
           >
-            <T variant="name" style={{ flex: 1 }} numberOfLines={1}>
+            <Lamp on={false} />
+            <T variant="name" numberOfLines={1} style={{ flexShrink: 1 }}>
               {item.sender?.handle ?? "—"}
             </T>
+            <View style={{ flex: 1 }} />
 
             <Pressable
               onPress={() => respond(item, true)}
               disabled={busyId === item.id}
-              hitSlop={10}
+              hitSlop={12}
               accessibilityRole="button"
               accessibilityLabel={`Accept ${item.sender?.handle}`}
-              style={{ marginRight: SPACE.l }}
+              style={{ paddingHorizontal: SPACE.s }}
             >
-              <T variant="mono" style={{ color: palette.signalText }}>
-                ACCEPT
+              <T variant="mono" tone="text">
+                Accept
               </T>
             </Pressable>
 
             <Pressable
               onPress={() => respond(item, false)}
               disabled={busyId === item.id}
-              hitSlop={10}
+              hitSlop={12}
               accessibilityRole="button"
               accessibilityLabel={`Decline ${item.sender?.handle}`}
+              style={{ paddingHorizontal: SPACE.s }}
             >
-              <T variant="mono" tone="concrete">
-                NO
+              <T variant="mono" tone="faint">
+                No
               </T>
             </Pressable>
           </View>
+        )}
+        ItemSeparatorComponent={() => (
+          <View style={{ height: 1, backgroundColor: COLOR.line }} />
         )}
       />
     </Screen>

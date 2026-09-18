@@ -5,13 +5,13 @@
     "scheme": "idle",
     "version": "0.1.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "icon": "./assets/icon.png",
-    "backgroundColor": "#0A0A0A",
+    "backgroundColor": "#08090B",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0A0A0A"
+      "backgroundColor": "#08090B"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -22,17 +22,19 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "To scan a friend's QR code.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSContactsUsageDescription": "To find which of your contacts are already on IDLE. Matching happens on this device and your contacts are never uploaded."
       }
     },
     "android": {
       "package": "app.idle.client",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0A0A0A"
+        "backgroundColor": "#08090B"
       },
       "permissions": [
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.READ_CONTACTS"
       ],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
@@ -54,6 +56,12 @@
         "expo-font",
         {
           "fonts": []
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "To find which of your contacts are already on IDLE. Matching happens on this device and your contacts are never uploaded."
         }
       ]
     ],

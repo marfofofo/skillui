@@ -1,16 +1,6 @@
 import { Stack } from "expo-router";
-import { usePalette } from "@/design/tokens";
+import { SCREEN_OPTIONS } from "../../_layout";
 
 export default function SettingsLayout() {
-  const palette = usePalette();
-  return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: palette.paper },
-        animation: "fade",
-        animationDuration: 120,
-      }}
-    />
-  );
+  return <Stack screenOptions={SCREEN_OPTIONS} />;
 }

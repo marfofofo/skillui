@@ -1,193 +1,162 @@
-# `"IDLE"` — DESIGN SYSTEM
+# IDLE — DESIGN SYSTEM
 
-> `"SOCIAL NETWORK"` FOR ENGINEERS
-> c/o 2026
-
----
-
-## 01 — THE IDEA
-
-The name is a readymade. We take the word that describes the state the product
-exists to destroy, put it in quotation marks, and use it as the logo.
-
-You open `"IDLE"` precisely when you don't want to be idle. You open it to find
-out who is awake, who is building, who is in it right now — so you can be in it
-too. The irony is the whole brand.
-
-**The quotation marks are not decoration. They are the logo.** They are never
-dropped, never styled as curly typographic quotes in the wordmark (straight
-double quotes only, `"IDLE"`), and never replaced by an icon.
+The app is named after the state it exists to destroy.
 
 ---
 
-## 02 — THE 3% RULE
+## 01 — THE ONE IDEA
 
-Abloh's rule: take a familiar object, change it by 3%, and it becomes new.
+**A lamp in a window.**
 
-Every screen in `"IDLE"` is a screen you have already used a thousand times —
-a friends list, a QR invite sheet, a profile — shifted exactly 3%:
+You open IDLE to find out who is awake. The entire interface is in service of one
+glance: a list of people, and a small warm light next to anyone who is building
+right now. Everything else — the type, the greys, the spacing — exists to make
+that light the only thing your eye lands on.
 
-| Familiar object | The 3% shift |
-|---|---|
-| Friends list | Sorted by **who is awake**, not alphabetically. Offline friends don't disappear, they sit below a hazard rule labelled `"IDLE"`. |
-| Online dot | Not a green dot. The whole row **inverts** — ink on paper becomes paper on ink. The lights literally come on. |
-| Status text | Not "Online". `MARCUS  c/o  CLAUDE CODE`. |
-| Add friend | Not a search box. A **code**, a **link**, a **QR** — you have to know someone. |
-| Empty state | Not "No friends yet". `"NOBODY"` set at 96pt. |
-
-If a screen doesn't have its 3%, it isn't finished.
+This is why the product is 98% achromatic. Colour is not decoration here, it is
+information, and there is exactly one piece of information worth colouring.
 
 ---
 
-## 03 — THE `c/o` GRAMMAR
+## 02 — DARK ONLY, ON PURPOSE
 
-`c/o` — *care of* — is the presence string of the entire product. You are never
-just online; you are online **care of** the machine you are speaking through.
+v1 ships dark and only dark.
 
-```
-MARCUS          c/o   CLAUDE CODE
-SOFIA           c/o   CODEX
-LUCA            c/o   —
-```
+A lamp needs a dark room. The warm light that carries this whole product reads as
+*a light being on* against near-black; against white it is just an orange dot.
+The product is also used at the hours it is about — late, alone, with a terminal
+open — and a bright panel dropping out of the menu bar at 1am is a small act of
+violence.
 
-- `c/o` is always lowercase, always surrounded by wide space (never a comma).
-- The agent name is always uppercase.
-- When a friend is idle, the agent slot is an em dash. Never the word "offline".
+The token layer is written so a light theme can be added later without touching a
+screen. It is a deliberate omission, not a missing feature.
 
 ---
 
-## 04 — META-LABELLING
+## 03 — COLOUR
 
-Every interactive surface is labelled with what it literally is, in quotes, in
-the smallest type on screen, uppercase, letter-spaced.
+Eight values. No gradients, no drop shadows on content, no blur except the one
+material behind the desktop panel.
 
-```
-"BUTTON"      "FRIEND"      "INVITE"      "STATUS"
-"QR CODE"     "SETTINGS"    "REPORT"      "DELETE"
-```
-
-The label sits above or beside the object, in `CONCRETE`, at 10pt / +0.18em.
-It is a caption on a museum wall, not a hint. It never explains — it names.
-
-Rule: a meta-label never repeats the object's own visible text. If a button
-already says `INVITE`, its meta-label is `"BUTTON"`.
-
----
-
-## 05 — COLOR
-
-Six values. No gradients. No shadows. No blur. Ever.
-
-| Token | Light | Dark | Use |
+| Token | Value | Contrast | Use |
 |---|---|---|---|
-| `INK` | `#0A0A0A` | `#F4F1EA` | Text, rules, and the background of a live row |
-| `PAPER` | `#F4F1EA` | `#0A0A0A` | The page. Off-white — the joke is intentional |
-| `SIGNAL` | `#FF3B00` | `#FF3B00` | **Live.** Presence only. Never changes |
-| `SIGNAL/TEXT` | `#C42D00` | `#FF3B00` | SIGNAL as small text |
-| `CAUTION` | `#E4FF3A` | `#E4FF3A` | Hazard stripes, destructive confirms |
-| `CONCRETE` | `#6E6B66` | `#9A968F` | Meta-labels, idle friends, secondary text |
-| `HAIRLINE` | `INK` @ 12% | `INK` @ 14% | Every divider, every border. Always exactly 1px |
+| `canvas` | `#08090B` | — | The room |
+| `raise` | `rgba(255,255,255,0.028)` | — | A surface one step up. Luminance, never a shadow |
+| `line` | `rgba(255,255,255,0.08)` | — | Every divider and border, always 1px |
+| `text` | `rgba(255,255,255,0.95)` | 18:1 | Names of people who are awake, headings |
+| `dim` | `rgba(255,255,255,0.58)` | 6.8:1 | Names of people who are idle, body copy |
+| `faint` | `rgba(255,255,255,0.50)` | 5.3:1 | Labels, captions, the agent name |
+| `lamp` | `#FFC16B` | 13.3:1 | **The light.** Presence, and nothing else, ever |
+| `alarm` | `#FF6B5A` | 7.1:1 | Destructive actions only |
 
-**The `SIGNAL` law.** `SIGNAL` means one thing and only one thing: *a human being
-is awake and building right now*. It is never used for a CTA, never for an error,
-never for a badge. Spend it on nothing else and it will carry the entire product.
+**The lamp law.** `lamp` means one thing: *a person is awake and building right
+now*. It is never a button, never a link, never a badge, never a brand flourish.
+On a well-populated screen it appears two or three times. That restraint is the
+entire reason it works — the moment a second thing is amber, the light stops
+being information and becomes styling.
 
-**Why SIGNAL has a text variant.** `#FF3B00` reaches 5.5:1 against `#0A0A0A` but
-only 3.1:1 against `#F4F1EA` — below the 4.5:1 that 14px text needs. As a fill,
-or as a 1px rule, `#FF3B00` is used everywhere unmodified: 3:1 is the bar for a
-non-text element and it clears it. As small text it takes the variant that is
-legible on the background it lands on.
+Every value above clears WCAG AA at the size it is used. There is no grey below
+`faint` in this system, because a grey that fails contrast is not a subtle grey,
+it is an unreadable one.
 
-**A live row is the other mode, not a set of exceptions.** It inverts, so it
-renders from the *inverted palette* — `useInvertedPalette()` in
-`apps/mobile/src/design/tokens.ts`. That one decision is why `c/o` and the agent
-name stay readable on a live row in both themes without a single special case,
-and it is the rule to reach for any time a surface inverts.
+---
 
-**Text on a SIGNAL fill is always `#0A0A0A`**, in both modes. `PAPER` on `SIGNAL`
-is 3.1:1 and fails.
+## 04 — THE LAMP
 
-**CONCRETE is tuned per mode** for the same reason: no single grey clears 4.5:1
-against both `#0A0A0A` and `#F4F1EA`.
+A 7px circle in `lamp`, with three stacked shadows and nothing else:
 
-Dark mode inverts `INK` ⇄ `PAPER`. Nothing else moves.
+```
+box-shadow:
+  0 0 0 1px rgba(255,193,107,0.25),    /* the filament edge */
+  0 0 10px 1px rgba(255,193,107,0.65), /* the glow */
+  0 0 22px 4px rgba(255,193,107,0.22); /* the room it lights */
+```
 
-## 06 — TYPE
+Idle is the same circle as a 1px ring in `rgba(255,255,255,0.22)` — a lamp that
+is off, not an absence. The two states occupy identical space, so a friend coming
+online changes the light and moves nothing.
 
-One family. Helvetica Neue on iOS; **Inter Tight** bundled everywhere as the
-single source of truth so Android and iOS are identical.
+The lamp never animates on arrival. It cuts. A light does not fade in.
+
+---
+
+## 05 — TYPE
+
+One family, one mono. **Geist** and **Geist Mono**.
 
 | Role | Size / Weight | Treatment |
 |---|---|---|
-| `DISPLAY` | 96 / 700 | UPPERCASE, tracking −0.04em. Empty states, the wordmark |
-| `TITLE` | 32 / 700 | UPPERCASE, tracking −0.03em |
-| `NAME` | 22 / 600 | UPPERCASE. Friend names are always uppercase |
-| `BODY` | 16 / 400 | Sentence case. The only place sentence case is allowed |
-| `MONO` | 14 / 500 | Agent names, codes, `c/o` strings. Inter Tight tabular figures |
-| `META` | 10 / 600 | UPPERCASE, tracking +0.18em. Meta-labels only |
+| `display` | 40 / 300 | Tracking −1.4. The one large thing on a screen, at most |
+| `title` | 24 / 400 | Tracking −0.6 |
+| `name` | 16 / 450 | Tracking −0.1. A person |
+| `body` | 15 / 400 | The only place sentence case is the default |
+| `mono` | 11 / 500 | Geist Mono, +0.9 tracking, uppercase. Agents, codes, counts |
+| `label` | 10 / 500 | Geist Mono, +1.4 tracking, uppercase. Section headers |
 
-Never italic. Never a second typeface. Never a font size between these six.
+Weight 450–500 is the baseline, not 400: light weights thin out badly on a dark
+background. There are no poster-sized headings anywhere except the empty state —
+this product is a glance, not an editorial.
 
----
-
-## 07 — HAZARD
-
-The 45° diagonal stripe, `INK` on `CAUTION`, 8px pitch. Used as a **rule**, never
-as a fill, and only at three moments:
-
-1. The divider between awake friends and `"IDLE"` friends.
-2. Above any destructive action (account deletion, unfriend, block).
-3. The top edge of the pairing screen, where the terminal meets the phone.
-
-A hazard stripe means *a boundary you are crossing*. Nothing else.
+Never italic. Never a third family.
 
 ---
 
-## 08 — MOTION
+## 06 — SPACE AND SHAPE
 
-Industrial. There is no easing curve in this product.
+- Scale: `4 · 8 · 14 · 24 · 36 · 56`. Nothing in between.
+- Screen gutter: `24px` on phone, `16px` inside the desktop panel.
+- A list row is `56px` tall on phone, `34px` in the panel. Rows have no dividers
+  between them — the space is the separation. A single `line` divides *groups*.
+- Radius: `0` for full-bleed lists, `7px` for a row highlight, `14px` for the
+  desktop panel. Nothing else is rounded.
+- Elevation is luminance: a raised surface is `raise` over `canvas` plus a `line`
+  border. There are no drop shadows on content, only under the floating panel.
 
-- State changes are **instant** (0ms) or **snapped** (120ms linear). Nothing else.
-- A friend coming online does not fade in. It **cuts**. One frame idle, next frame live.
-- No spring physics, no bounce, no parallax, no skeleton shimmer.
-- The only animation longer than 120ms is the hazard stripe, which scrolls at 8px/s
-  forever and never stops.
+---
+
+## 07 — MOTION
+
+- State changes: `120ms`, ease-out. Nothing slower, nothing bouncier.
+- A friend coming online: **no transition at all.** The lamp is off, then it is on.
+- No spring physics, no parallax, no skeleton shimmer, no pull-to-refresh spinner
+  that outstays the request.
 
 The product should feel like a departure board, not a toy.
 
 ---
 
-## 09 — THE ICON
+## 08 — THE ICON
 
-A pure `INK` square. No radius of our own (the OS masks it). `"IDLE"` in `PAPER`,
-Inter Tight 700, optically centred, quotation marks included, occupying 72% of the
-tile width.
+The `canvas` square, and a single lamp with its bloom, optically centred at 22% of
+the tile width. No word, no glyph, no gradient.
 
-That's it. No mark, no glyph, no gradient. On a home screen full of rounded candy
-gradients, a flat black tile with a word in quotes is the 3%.
-
----
-
-## 10 — VOICE
-
-- Lowercase never. Sentence case only in `BODY`.
-- Never exclamation marks. Never emoji in product chrome.
-- Never say "user". Say the person's name, or `"FRIEND"`.
-- Never apologise. Errors state the fact: `TERMINAL NOT LINKED`.
-- Never explain the joke.
+On a home screen of candy-coloured gradients, one small warm light in the dark is
+the thing your eye goes to. That is also exactly what the app does.
 
 ---
 
-## 11 — WHAT WE WILL NOT DO
+## 09 — VOICE
+
+- Sentence case. Never shout except in `mono` labels, which are uppercase by form.
+- No exclamation marks. No emoji anywhere in product chrome.
+- Never "user". Say their name, or "friend".
+- Errors state the fact and the fix: `No terminal paired — run idle link`.
+- Numbers before adjectives: "2 awake", not "a few friends online".
+
+---
+
+## 10 — WHAT WE WILL NOT DO
 
 Written down so it stays written down.
 
-- No streaks, no XP, no leaderboards, no badges. This is not a game.
-- No infinite feed. There is no content to scroll — only people.
-- No engagement notifications. The only push we ever send is a friend request
-  and, opt-in, a single friend coming online.
+- No feed. There is no content to scroll — only people.
+- No streaks, XP, leaderboards or badges. This is not a game.
 - No follower counts. There is no number attached to a person anywhere.
-- No ads. No promoted anything.
 - No "who viewed your profile".
+- No engagement notifications. The only pushes are a friend request and, opt-in,
+  a single friend coming online.
+- No duration or intensity in presence by default. A friend sees *that* you are
+  building and *which agent*. Nothing else.
+- No ads. No promoted anything.
 
 The product is finished when there is nothing left to remove.

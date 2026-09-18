@@ -1,55 +1,57 @@
-// "IDLE" — six sizes. Never a seventh, never italic, never a second family.
+// IDLE — six roles. Never a seventh, never italic, never a third family.
+//
+// Weight 450–500 is the baseline rather than 400: light weights thin out badly
+// on a dark background.
 
 import type { TextStyle } from "react-native";
 
 export const FAMILY = {
-  regular: "InterTight_400Regular",
-  medium: "InterTight_500Medium",
-  semibold: "InterTight_600SemiBold",
-  bold: "InterTight_700Bold",
+  light: "Geist_300Light",
+  regular: "Geist_400Regular",
+  medium: "Geist_500Medium",
+  semibold: "Geist_600SemiBold",
+  mono: "GeistMono_400Regular",
+  monoMedium: "GeistMono_500Medium",
 } as const;
 
-export type Variant = "display" | "title" | "name" | "body" | "mono" | "meta";
+export type Variant = "display" | "title" | "name" | "body" | "mono" | "label";
 
 export const TYPE: Record<Variant, TextStyle> = {
   display: {
-    fontFamily: FAMILY.bold,
-    fontSize: 96,
-    lineHeight: 92,
-    letterSpacing: -3.84, // -0.04em
-    textTransform: "uppercase",
+    fontFamily: FAMILY.light,
+    fontSize: 40,
+    lineHeight: 42,
+    letterSpacing: -1.4,
   },
   title: {
-    fontFamily: FAMILY.bold,
-    fontSize: 32,
-    lineHeight: 34,
-    letterSpacing: -0.96, // -0.03em
-    textTransform: "uppercase",
+    fontFamily: FAMILY.regular,
+    fontSize: 24,
+    lineHeight: 28,
+    letterSpacing: -0.6,
   },
   name: {
-    fontFamily: FAMILY.semibold,
-    fontSize: 22,
-    lineHeight: 26,
-    letterSpacing: -0.44,
-    textTransform: "uppercase",
+    fontFamily: FAMILY.medium,
+    fontSize: 16,
+    lineHeight: 20,
+    letterSpacing: -0.1,
   },
   body: {
     fontFamily: FAMILY.regular,
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: 15,
+    lineHeight: 22,
   },
   mono: {
-    fontFamily: FAMILY.medium,
-    fontSize: 14,
-    lineHeight: 18,
-    letterSpacing: 0.28,
-    fontVariant: ["tabular-nums"],
+    fontFamily: FAMILY.monoMedium,
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 0.9,
+    textTransform: "uppercase",
   },
-  meta: {
-    fontFamily: FAMILY.semibold,
+  label: {
+    fontFamily: FAMILY.monoMedium,
     fontSize: 10,
     lineHeight: 12,
-    letterSpacing: 1.8, // +0.18em
+    letterSpacing: 1.4,
     textTransform: "uppercase",
   },
 };

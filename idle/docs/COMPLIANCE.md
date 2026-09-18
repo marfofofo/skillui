@@ -45,6 +45,19 @@ and the friend graph make it a real network, and the app must feel complete on
 first launch — which is why the empty state, the QR sheet and the pairing flow are
 first-class screens, not placeholders.
 
+### Guideline 5.1.2 — Contacts
+
+Apps get rejected for collecting information about a user's contacts without
+those people's knowledge. We access the address book and never collect it: see
+[`CONTACTS.md`](CONTACTS.md). What this requires of us in the submission:
+
+- `NSContactsUsageDescription` that says what actually happens, not a euphemism.
+- The privacy nutrition label declares Contacts as **not collected**, which is
+  only true because the matching is on-device. If that changes, the label changes.
+- Review notes must explain the two-step bucket protocol, because a reviewer
+  seeing a contacts permission on a social app will assume the usual thing.
+- No invite flow of any kind. We never send anything to anyone who is not a user.
+
 ### Other Apple items
 
 - **Sign in with Apple** is required if we offer any third-party sign-in (Google).
@@ -61,7 +74,7 @@ first-class screens, not placeholders.
 
 | Requirement | Note |
 |---|---|
-| **Data safety form** | Must match `docs/PRESENCE_PROTOCOL.md` exactly. Declare: email, name, user IDs. Encrypted in transit, deletable on request. |
+| **Data safety form** | Must match `docs/PRESENCE_PROTOCOL.md` and `docs/CONTACTS.md` exactly. Declare: email, name, user IDs. Contacts: accessed on device, **not collected**, not shared. Encrypted in transit, deletable on request. |
 | **Account deletion** | Both in-app **and** a publicly reachable web URL (`idle.app/delete`) that works without installing the app. Play checks the URL. |
 | **Target API level** | Keep on the current Play requirement; Expo SDK upgrades track it. |
 | **16 KB page sizes** | Required for 64-bit native libs. Expo SDK handles it; verify at build. |
@@ -76,6 +89,7 @@ first-class screens, not placeholders.
 |---|---|
 | Lawful basis | Contract (Art. 6(1)(b)) for the account and presence; consent for optional push |
 | Data minimisation | The protocol is the policy. Four fields. See `PRESENCE_PROTOCOL.md` §2 |
+| Third parties' data | None processed. Contact matching happens on the device and transmits 16-bit buckets, not addresses — `CONTACTS.md`. The Twoo decision (BE DPA, €50,000) is the precedent this design exists to avoid |
 | Right of access / portability | Settings → `"EXPORT"` → signed JSON of everything we hold, emailed |
 | Right to erasure | The same `delete_account()` RPC as 5.1.1(v), completed immediately |
 | Records of processing | `docs/ROPA.md` — TODO before launch |
@@ -110,6 +124,8 @@ first-class screens, not placeholders.
 [ ] Play data safety form filled and matching the protocol doc
 [ ] Sign in with Apple present if any third-party sign-in is present
 [ ] Age gate at signup (16 EU / 13 elsewhere)
+[ ] Contacts declared "not collected" on both stores, and still true
+[ ] Review notes explain the on-device contact matching
 [ ] Demo account with seeded friends for App Review (they cannot pair a terminal)
 [ ] Review notes explaining the terminal pairing step, with a screencast
 [ ] Screenshots for every required device size

@@ -29,6 +29,18 @@ are in it.
 
 ---
 
+## V1.2 — THE REST OF THE GRAPH
+
+- **GitHub connect.** A developer's real social graph is their following list and
+  the people they have committed alongside. Every match is by definition someone
+  who codes, the data is already public, and — like contact matching — we would
+  keep only the people who are already users. Higher hit rate than an address
+  book by a wide margin.
+- **Phone numbers in contact matching.** Needs SMS verification and a cost per
+  user; the schema already takes a `kind` column so it is additive.
+
+---
+
 ## V2 — `"KNOCK"`
 
 The one interaction the product earns the right to add.
@@ -76,6 +88,8 @@ Written down so a growth deck cannot quietly reintroduce them.
 | Repo and language in presence | Kills adoption in any company with an NDA, and it is the first thing a screenshot leaks |
 | Recruiter tooling | The instant this becomes a hiring surface, nobody sets their status honestly |
 | Ads | — |
+| Uploading an address book | The Twoo decision, and it would make the privacy claim a lie. Matching stays on the device |
+| Inviting non-users | Sending anything to someone who never signed up is the exact thing that gets fined. There is no invite flow |
 
 ---
 

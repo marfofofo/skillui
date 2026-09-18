@@ -1,26 +1,27 @@
 import { Linking, Pressable, View } from "react-native";
 import { router } from "expo-router";
 import { Screen } from "@/design/Screen";
-import { T, Meta } from "@/design/Text";
+import { T, Label } from "@/design/Text";
+import { Header } from "@/design/Header";
 import { Button } from "@/design/Button";
-import { usePalette, SPACE, HAIRLINE } from "@/design/tokens";
+import { COLOR, SPACE, HAIRLINE, ROW_HEIGHT } from "@/design/tokens";
 import { useSession } from "@/lib/session";
 
-function Row({ label, meta, onPress }: { label: string; meta: string; onPress: () => void }) {
-  const palette = usePalette();
+function Row({ label, onPress }: { label: string; onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={{
-        paddingVertical: SPACE.m,
+      style={({ pressed }) => ({
+        height: ROW_HEIGHT,
+        justifyContent: "center",
         borderBottomWidth: HAIRLINE,
-        borderBottomColor: palette.hairline,
-      }}
+        borderBottomColor: COLOR.line,
+        opacity: pressed ? 0.6 : 1,
+      })}
     >
-      <Meta>{meta}</Meta>
-      <T variant="name" style={{ marginTop: SPACE.xs }}>
+      <T variant="name" tone="dim">
         {label}
       </T>
     </Pressable>
@@ -32,58 +33,33 @@ export default function Settings() {
 
   return (
     <Screen scroll>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <T variant="title" style={{ flex: 1 }}>
-          SETTINGS
-        </T>
-        <Pressable onPress={() => router.back()} hitSlop={12} accessibilityRole="button">
-          <Meta>close</Meta>
-        </Pressable>
-      </View>
+      <Header title="Settings" />
 
-      <View style={{ marginTop: SPACE.l }}>
-        <Meta>you</Meta>
-        <T variant="display" numberOfLines={1} adjustsFontSizeToFit style={{ marginTop: SPACE.xs }}>
-          {profile?.handle ?? "—"}
-        </T>
-      </View>
+      <T variant="display">{profile?.handle ?? "—"}</T>
 
-      <View style={{ marginTop: SPACE.xl }}>
-        <Row label="Pair a terminal" meta="terminal" onPress={() => router.push("/(app)/settings/pair")} />
-        <Row label="Devices" meta="devices" onPress={() => router.push("/(app)/settings/devices")} />
-        <Row label="Requests" meta="requests" onPress={() => router.push("/(app)/requests")} />
-      </View>
+      <Label style={{ marginTop: SPACE.xl, marginBottom: SPACE.s }}>Terminals</Label>
+      <Row label="Pair a terminal" onPress={() => router.push("/(app)/settings/pair")} />
+      <Row label="Devices" onPress={() => router.push("/(app)/settings/devices")} />
 
-      <View style={{ marginTop: SPACE.xl }}>
-        <Row
-          label="What we know about you"
-          meta="privacy"
-          onPress={() => Linking.openURL("https://idle.app/protocol")}
-        />
-        <Row
-          label="Privacy policy"
-          meta="legal"
-          onPress={() => Linking.openURL("https://idle.app/privacy")}
-        />
-        <Row
-          label="Terms"
-          meta="legal"
-          onPress={() => Linking.openURL("https://idle.app/terms")}
-        />
-        <Row
-          label="Contact us"
-          meta="support"
-          onPress={() => Linking.openURL("mailto:support@idle.app")}
-        />
-      </View>
+      <Label style={{ marginTop: SPACE.xl, marginBottom: SPACE.s }}>People</Label>
+      <Row label="Requests" onPress={() => router.push("/(app)/requests")} />
+      <Row label="Find friends from contacts" onPress={() => router.push("/(app)/contacts")} />
+
+      <Label style={{ marginTop: SPACE.xl, marginBottom: SPACE.s }}>About</Label>
+      <Row
+        label="What we know about you"
+        onPress={() => Linking.openURL("https://idle.app/protocol")}
+      />
+      <Row label="Privacy policy" onPress={() => Linking.openURL("https://idle.app/privacy")} />
+      <Row label="Terms" onPress={() => Linking.openURL("https://idle.app/terms")} />
+      <Row label="Contact us" onPress={() => Linking.openURL("mailto:support@idle.app")} />
 
       <View style={{ marginTop: SPACE.xl, gap: SPACE.s }}>
-        <Button label="Sign out" kind="ghost" onPress={signOut} />
+        <Button label="Sign out" kind="quiet" onPress={signOut} />
         <Button
           label="Delete account"
           kind="destructive"
           onPress={() => router.push("/(app)/settings/delete")}
-          meta="delete"
         />
       </View>
     </Screen>

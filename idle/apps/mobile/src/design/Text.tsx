@@ -1,33 +1,23 @@
 import { Text as RNText, type TextProps as RNTextProps } from "react-native";
 import { TYPE, type Variant } from "./type";
-import { usePalette } from "./tokens";
-
-type Tone = "ink" | "paper" | "concrete" | "signal" | "signalText" | "caution";
+import { COLOR, type Color } from "./tokens";
 
 export type TProps = RNTextProps & {
   variant?: Variant;
-  tone?: Tone;
+  tone?: Color;
 };
 
-export function T({ variant = "body", tone = "ink", style, ...rest }: TProps) {
-  const palette = usePalette();
+export function T({ variant = "body", tone = "text", style, ...rest }: TProps) {
   return (
     <RNText
       {...rest}
       allowFontScaling
-      style={[TYPE[variant], { color: palette[tone] }, style]}
+      style={[TYPE[variant], { color: COLOR[tone] }, style]}
     />
   );
 }
 
-/**
- * A meta-label: the smallest type on screen, naming what a thing literally is.
- * It never repeats the object's own visible text. See BRAND.md §04.
- */
-export function Meta({ children, tone = "concrete", style, ...rest }: TProps) {
-  return (
-    <T variant="meta" tone={tone} style={style} {...rest}>
-      {`"${String(children).toUpperCase()}"`}
-    </T>
-  );
+/** A section header: the smallest type on screen, and the only shouting. */
+export function Label({ tone = "faint", style, ...rest }: TProps) {
+  return <T variant="label" tone={tone} style={style} {...rest} />;
 }

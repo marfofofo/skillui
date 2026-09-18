@@ -114,3 +114,22 @@ end;
 $$;
 
 grant execute on all functions in schema tests to anon, authenticated, service_role;
+
+create or replace view tests.contact_hashes_raw as
+  select p.handle::text as handle, ch.kind, ch.hash
+  from public.contact_hashes ch join public.profiles p on p.id = ch.user_id;
+
+grant select on tests.contact_hashes_raw to anon, authenticated, service_role;
+
+/** auth.users belongs to the platform; tests reach it through here. */
+create or replace function tests.set_auth_email(p_uid uuid, p_email text, p_confirmed boolean)
+returns void language plpgsql security definer set search_path = '' as $$
+begin
+  update auth.users
+     set email = p_email,
+         email_confirmed_at = case when p_confirmed then now() else null end
+   where id = p_uid;
+end;
+$$;
+
+grant execute on function tests.set_auth_email(uuid, text, boolean) to authenticated;

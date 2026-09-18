@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
 import { Screen } from "@/design/Screen";
-import { T, Meta } from "@/design/Text";
+import { T } from "@/design/Text";
 import { Button } from "@/design/Button";
-import { SPACE, RAW } from "@/design/tokens";
+import { IconButton } from "@/design/Icon";
+import { COLOR, SPACE } from "@/design/tokens";
 import { lookupInvite, sendFriendRequest } from "@/lib/api";
 
 const CODE_IN_LINK = /(?:idle\.app\/i\/)?([A-Za-z0-9]{8})\s*$/;
@@ -21,7 +22,7 @@ export default function Scan() {
 
     const match = raw.trim().match(CODE_IN_LINK);
     if (!match?.[1]) {
-      setStatus("THAT IS NOT AN “IDLE” CODE");
+      setStatus("That is not an IDLE code");
       setTimeout(() => setHandled(false), 1500);
       return;
     }
@@ -29,46 +30,49 @@ export default function Scan() {
     try {
       const preview = await lookupInvite(match[1]);
       if (!preview) {
-        setStatus("NO SUCH CODE");
+        setStatus("No such code");
         setTimeout(() => setHandled(false), 1500);
         return;
       }
       if (preview.relationship !== "none") {
-        setStatus(`${preview.handle.toUpperCase()} — ALREADY CONNECTED`);
+        setStatus(`${preview.handle} — already connected`);
         return;
       }
       const result = await sendFriendRequest(preview.user_id);
       setStatus(
         result === "friend"
-          ? `${preview.handle.toUpperCase()} — YOU ARE FRIENDS`
-          : `${preview.handle.toUpperCase()} — REQUEST SENT`,
+          ? `${preview.handle} — you're friends`
+          : `${preview.handle} — request sent`,
       );
       setTimeout(() => router.back(), 1200);
     } catch {
-      setStatus("SOMETHING WENT WRONG");
+      setStatus("Something went wrong");
       setTimeout(() => setHandled(false), 1500);
     }
   }
 
-  if (!permission) return <Screen><View /></Screen>;
+  if (!permission) {
+    return (
+      <Screen>
+        <View />
+      </Screen>
+    );
+  }
 
   if (!permission.granted) {
     return (
       <Screen>
         <View style={{ flex: 1, justifyContent: "center" }}>
-          <Meta>camera</Meta>
-          <T variant="title" style={{ marginTop: SPACE.s }}>
-            CAMERA OFF
-          </T>
-          <T variant="body" tone="concrete" style={{ marginTop: SPACE.s }}>
-            The camera is used for one thing: reading a friend&apos;s QR code. Nothing
-            is stored and no image ever leaves this device.
+          <T variant="title">Camera off</T>
+          <T variant="body" tone="dim" style={{ marginTop: SPACE.m }}>
+            The camera is used for one thing: reading a friend&apos;s QR code.
+            Nothing is stored and no image ever leaves this device.
           </T>
         </View>
-        <Button label="Allow camera" onPress={requestPermission} meta="button" />
+        <Button label="Allow camera" onPress={requestPermission} />
         <Button
           label="Not now"
-          kind="ghost"
+          kind="quiet"
           onPress={() => router.back()}
           style={{ marginTop: SPACE.s }}
         />
@@ -77,7 +81,7 @@ export default function Scan() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: RAW.ink }}>
+    <View style={{ flex: 1, backgroundColor: COLOR.canvas }}>
       <CameraView
         style={{ flex: 1 }}
         facing="back"
@@ -85,20 +89,25 @@ export default function Scan() {
         onBarcodeScanned={({ data }) => onScan(data)}
       />
 
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          paddingTop: SPACE.xxl,
+          paddingHorizontal: SPACE.m,
+          flexDirection: "row",
+        }}
+      >
+        <View style={{ flex: 1 }} />
+        <IconButton name="close" label="Close" tone="text" onPress={() => router.back()} />
+      </View>
+
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: SPACE.l }}>
-        <T variant="mono" style={{ color: status ? RAW.signal : RAW.paper }}>
-          {status ?? "POINT AT A QR CODE"}
+        <T variant="mono" tone={status ? "text" : "dim"}>
+          {status ?? "Point at a QR code"}
         </T>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          style={{ marginTop: SPACE.m }}
-        >
-          <T variant="meta" style={{ color: RAW.paper }}>
-            &quot;CLOSE&quot;
-          </T>
-        </Pressable>
       </View>
     </View>
   );

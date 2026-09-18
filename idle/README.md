@@ -1,21 +1,22 @@
-```
-"IDLE"
-```
+# IDLE
 
-> `"SOCIAL NETWORK"` FOR ENGINEERS · c/o 2026
+> A small network of people who build at night.
 
 The app is named after the state it exists to destroy.
 
-You open `"IDLE"` to find out who is awake. Not who posted, not who liked, not
-who is hiring — who is **in it right now**, at this hour, with an agent running.
+```
+  ●  sofia        CLAUDE CODE
+  ●  matteo       CODEX
+  ────────────────────────────
+  ○  luca              —
+  ○  giulia            —
+```
 
-```
-MARCUS          c/o   CLAUDE CODE
-SOFIA           c/o   CODEX
-▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  "IDLE"  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-LUCA            c/o   —
-GIULIA          c/o   —
-```
+You open IDLE to find out who is awake. Not who posted, not who liked, not who is
+hiring — who is **in it right now**, at this hour, with an agent running.
+
+There is no feed. There is no posting. There are no follower counts. There are
+people you actually know, and the two states a person can be in.
 
 ---
 
@@ -24,15 +25,12 @@ GIULIA          c/o   —
 You pair your terminal once:
 
 ```bash
-npx idle link K4M-7QX
+npx idle-agent link K4M-7QX
 ```
 
 That writes a few lifecycle hooks into your Claude Code and Codex settings. From
 then on, when you start a coding session your friends see your light come on, and
 when you stop it goes out. Nothing else is sent — [see the protocol](docs/PRESENCE_PROTOCOL.md).
-
-There is no feed. There is no posting. There are no follower counts. There are
-people you actually know, and the two states a person can be in.
 
 ## THE DOOR
 
@@ -43,12 +41,16 @@ someone who builds things.
 
 That constraint is the product.
 
-## GROWTH
+## GROWING
 
-You add a friend with a code, a link, or a QR code — you have to actually know
-them. Then the graph does the rest: your friends' friends surface as suggestions
-with the number of people you have in common, and the network densifies the way
-a real community does, not the way a growth loop does.
+Four ways in, and not one of them can reach a stranger:
+
+| | |
+|---|---|
+| A code, a link, a QR | You have to actually know them |
+| Friends of friends | Ranked by how many people you have in common |
+| Your contacts | Matched **on your device** — [the address book never leaves the phone](docs/CONTACTS.md) |
+| — | There is no search box, and there never will be |
 
 ---
 
@@ -57,9 +59,11 @@ a real community does, not the way a growth loop does.
 | | |
 |---|---|
 | [`BRAND.md`](BRAND.md) | The design system. Read it before touching a pixel |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the three pieces fit together |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the pieces fit together |
 | [`docs/PRESENCE_PROTOCOL.md`](docs/PRESENCE_PROTOCOL.md) | Exactly what leaves your machine |
-| [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) | What the App Store and Play require |
+| [`docs/CONTACTS.md`](docs/CONTACTS.md) | How contact matching works without uploading contacts |
+| [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) | What the App Store, Play and the GDPR require |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | What comes next, and what never will |
 | `packages/agent/` | The CLI your coding agent's hooks call |
 | `supabase/` | Postgres schema, row-level security, edge functions |
 | `apps/mobile/` | The Expo app — iOS and Android |
@@ -78,12 +82,8 @@ npm run db:reset                 # apply migrations + seed
 npm run mobile                   # expo start
 
 npm test --workspace=idle-agent  # 28 CLI tests: privacy, settings merging, e2e
-npm run db:test                  # 83 database assertions, no Docker needed
+npm run db:test                  # 101 database assertions, no Docker needed
 ```
 
 `npm run db:test` applies every migration to a throwaway PostgreSQL database and
 asserts what the schema must refuse — see [`supabase/tests/`](supabase/tests/).
-
----
-
-`"README"`

@@ -1,13 +1,9 @@
-// "IDLE" — the icon, generated from the brand rules rather than drawn once.
+// IDLE — the icon, generated from the brand rules rather than drawn once.
 //
-// BRAND.md §09: a pure INK square, "IDLE" in PAPER, Inter Tight 700, optically
-// centred, quotation marks included, occupying 72% of the tile width.
+// BRAND.md §08: the canvas square, and a single lamp with its bloom, optically
+// centred at 22% of the tile width. No word, no glyph, no gradient background.
 //
 //   node scripts/make-assets.mjs
-//
-// Inter Tight must be visible to fontconfig. The font ships with the app:
-//   cp ../../node_modules/@expo-google-fonts/inter-tight/700Bold/*.ttf ~/.fonts/
-//   fc-cache -f
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -16,41 +12,45 @@ import sharp from "sharp";
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "assets");
 
-const INK = "#0A0A0A";
-const PAPER = "#F4F1EA";
+const CANVAS = "#08090B";
+const LAMP = "#FFC16B";
 
-/** The wordmark. Straight double quotes, always — they are the logo. */
-function wordmark({ size, widthRatio, background, foreground }) {
-  // Inter Tight Bold at 1000upm: '"IDLE"' is ~3.05em wide at -0.04em tracking.
-  const fontSize = Math.round((size * widthRatio) / 3.05);
+/** One warm light in a dark room. The three shadows of §04, as one gradient. */
+function lamp({ size, lampRatio, background }) {
+  const r = (size * lampRatio) / 2;
+  const cx = size / 2;
+  const cy = size / 2;
+  const bloom = r * 4.2;
+
   return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
-  <rect width="${size}" height="${size}" fill="${background}"/>
-  <text x="50%" y="50%"
-        font-family="Inter Tight" font-weight="700" font-size="${fontSize}"
-        letter-spacing="${(-0.04 * fontSize).toFixed(2)}"
-        fill="${foreground}"
-        text-anchor="middle" dominant-baseline="central">&#34;IDLE&#34;</text>
+  <defs>
+    <radialGradient id="bloom" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="${LAMP}" stop-opacity="0.55"/>
+      <stop offset="28%"  stop-color="${LAMP}" stop-opacity="0.26"/>
+      <stop offset="60%"  stop-color="${LAMP}" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="${LAMP}" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  ${background === "none" ? "" : `<rect width="${size}" height="${size}" fill="${background}"/>`}
+  <circle cx="${cx}" cy="${cy}" r="${bloom}" fill="url(#bloom)"/>
+  <circle cx="${cx}" cy="${cy}" r="${r}" fill="${LAMP}"/>
 </svg>`);
 }
 
 const TARGETS = [
-  // App icon: the word occupies 72% of the tile.
-  { file: "icon.png", size: 1024, widthRatio: 0.72, background: INK, foreground: PAPER },
-  // Android adaptive foreground: the OS masks ~33% away, so the safe zone is
-  // the centre circle. Shrink the word and keep the tile transparent-free.
-  { file: "adaptive-icon.png", size: 1024, widthRatio: 0.46, background: INK, foreground: PAPER },
-  // Splash: the same mark, small, on the same black. Nothing else happens here.
-  { file: "splash.png", size: 1284, widthRatio: 0.44, background: INK, foreground: PAPER },
-  // Notification icon: monochrome, Android tints it.
-  { file: "notification-icon.png", size: 96, widthRatio: 0.8, background: "#00000000", foreground: PAPER },
-  // Favicon for the web build.
-  { file: "favicon.png", size: 48, widthRatio: 0.82, background: INK, foreground: PAPER },
+  { file: "icon.png", size: 1024, lampRatio: 0.22, background: CANVAS },
+  // Android masks ~33% away, so the lamp shrinks to stay inside the safe circle.
+  { file: "adaptive-icon.png", size: 1024, lampRatio: 0.15, background: CANVAS },
+  { file: "splash.png", size: 1284, lampRatio: 0.055, background: CANVAS },
+  // Android tints the notification icon, so it ships as a flat silhouette.
+  { file: "notification-icon.png", size: 96, lampRatio: 0.34, background: "none" },
+  { file: "favicon.png", size: 64, lampRatio: 0.3, background: CANVAS },
 ];
 
 mkdirSync(OUT, { recursive: true });
 
 for (const target of TARGETS) {
-  const png = await sharp(wordmark(target), { density: 384 }).png().toBuffer();
+  const png = await sharp(lamp(target), { density: 384 }).png().toBuffer();
   writeFileSync(join(OUT, target.file), png);
   console.log(`${target.file.padEnd(22)} ${target.size}px`);
 }

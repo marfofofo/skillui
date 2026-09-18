@@ -1,46 +1,38 @@
 import { Pressable, View, ActivityIndicator, type ViewStyle } from "react-native";
-import { usePalette, RAW, SPACE, HAIRLINE } from "./tokens";
-import { T, Meta } from "./Text";
+import { COLOR, SPACE, HAIRLINE, RADIUS } from "./tokens";
+import { T, Label } from "./Text";
 
-type Kind = "primary" | "ghost" | "destructive";
+type Kind = "primary" | "quiet" | "destructive";
 
 type Props = {
   label: string;
   onPress: () => void;
   kind?: Kind;
-  meta?: string;
+  caption?: string;
   disabled?: boolean;
   busy?: boolean;
   style?: ViewStyle;
 };
 
 /**
- * Square. No radius, no shadow, no gradient. The press state is a cut, not a
- * fade — BRAND.md §08.
+ * Note what is missing: the lamp colour. A button is never amber, because amber
+ * means a person is awake. BRAND.md §03.
  */
 export function Button({
   label,
   onPress,
   kind = "primary",
-  meta,
+  caption,
   disabled,
   busy,
   style,
 }: Props) {
-  const palette = usePalette();
-
-  const background =
-    kind === "primary" ? palette.ink : kind === "destructive" ? palette.caution : "transparent";
-  // A pressed primary turns SIGNAL, and PAPER on SIGNAL is only 3.1:1.
-  // SIGNAL is the same colour in both modes, so its legible partner is too.
   const foreground =
-    kind === "primary" ? palette.paper : palette.ink;
-  const pressedForeground = RAW.ink;
-  const border = kind === "ghost" ? palette.ink : background;
+    kind === "destructive" ? COLOR.alarm : kind === "primary" ? COLOR.text : COLOR.dim;
 
   return (
     <View style={style}>
-      {meta ? <Meta style={{ marginBottom: SPACE.xs }}>{meta}</Meta> : null}
+      {caption ? <Label style={{ marginBottom: SPACE.s }}>{caption}</Label> : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label}
@@ -48,29 +40,31 @@ export function Button({
         disabled={disabled || busy}
         onPress={onPress}
         style={({ pressed }) => ({
-          backgroundColor: pressed && kind === "primary" ? palette.signal : background,
+          // Elevation is luminance, not a shadow. BRAND.md §06.
+          backgroundColor:
+            kind === "primary"
+              ? pressed
+                ? "rgba(255,255,255,0.10)"
+                : "rgba(255,255,255,0.06)"
+              : pressed
+                ? COLOR.raise
+                : "transparent",
           borderWidth: HAIRLINE,
-          borderColor: pressed && kind === "primary" ? palette.signal : border,
+          borderColor: kind === "quiet" ? COLOR.line : "transparent",
+          borderRadius: RADIUS.row,
           paddingVertical: SPACE.m,
           paddingHorizontal: SPACE.l,
           alignItems: "center",
           justifyContent: "center",
           opacity: disabled ? 0.35 : 1,
-          minHeight: 52,
+          minHeight: 48,
         })}
       >
-        {({ pressed }: { pressed: boolean }) => busy ? (
-          <ActivityIndicator color={pressed && kind === "primary" ? pressedForeground : foreground} />
+        {busy ? (
+          <ActivityIndicator color={foreground} />
         ) : (
-          <T
-            variant="name"
-            style={{
-              color: pressed && kind === "primary" ? pressedForeground : foreground,
-              fontSize: 16,
-              letterSpacing: 0.5,
-            }}
-          >
-            {label.toUpperCase()}
+          <T variant="name" style={{ color: foreground }}>
+            {label}
           </T>
         )}
       </Pressable>

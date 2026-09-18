@@ -1,4 +1,4 @@
-# `"IDLE"` — the app
+# IDLE — the app
 
 Expo + expo-router. One codebase, iOS and Android.
 
@@ -14,8 +14,9 @@ npx expo start
 |---|---|
 | `(auth)/sign-in` | Email link, and Sign in with Apple on iOS |
 | `(auth)/handle` | The one thing you cannot change later |
-| `(app)/index` | **THE LIST.** Awake friends invert; the rest sit under the hazard rule |
+| `(app)/index` | **THE LIST.** A lamp, a name, and the agent they speak through |
 | `(app)/add` | Your QR and your code; their code. No search box, ever |
+| `(app)/contacts` | Friends found from your address book, matched on this device |
 | `(app)/scan` | Camera, QR only, nothing stored |
 | `(app)/requests` | Accept or don't |
 | `(app)/suggestions` | Friends of friends, ranked by who you have in common |
@@ -27,12 +28,16 @@ npx expo start
 ## THE DESIGN SYSTEM IS CODE
 
 `src/design/` is `BRAND.md` compiled. If a colour, a type size or a spacing value
-is not in `tokens.ts` or `type.ts`, it does not exist. Two rules worth repeating:
+is not in `tokens.ts` or `type.ts`, it does not exist. Three rules worth repeating:
 
-- **`SIGNAL` (`#FF3B00`) means one thing**: a person is awake and building. It is
-  never a CTA, never an error, never a badge.
-- **No easing curves.** State changes are instant or a 120ms cut. A friend coming
-  online does not fade in.
+- **`lamp` (`#FFC16B`) means one thing**: a person is awake and building. It is
+  never a button, never a link, never a badge. On a busy screen it appears twice.
+- **Elevation is luminance, not shadow.** A raised surface is `raise` over
+  `canvas` plus a hairline. There are no drop shadows on content.
+- **A light does not fade in.** The lamp cuts between states; everything else
+  moves in 120ms, ease-out.
+
+Dark only in v1, on purpose — `BRAND.md` §02.
 
 ## PRESENCE
 
@@ -59,4 +64,4 @@ without which App Review cannot use the app at all.
 
 ---
 
-`"README"`
+
