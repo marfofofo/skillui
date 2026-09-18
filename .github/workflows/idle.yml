@@ -1,0 +1,82 @@
+name: IDLE
+
+on:
+  push:
+    paths: ["idle/**", ".github/workflows/idle.yml"]
+  pull_request:
+    paths: ["idle/**", ".github/workflows/idle.yml"]
+
+defaults:
+  run:
+    working-directory: idle
+
+jobs:
+  agent:
+    name: agent · privacy and settings merging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: idle/package-lock.json
+      - run: npm ci
+      - run: npm test --workspace=idle-agent
+
+  database:
+    name: database · what the schema must refuse
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports: ["5432:5432"]
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      # No Docker and no Supabase CLI: supabase/tests/00_bootstrap.sql recreates
+      # the platform objects the schema assumes, Supabase's default privileges
+      # included, so the revokes in migration 000200 are genuinely exercised.
+      - run: bash supabase/tests/run.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: idle/package-lock.json
+      - run: npm ci
+      # The loop the product depends on: the real binary, the real schema, the
+      # real endpoints. Everything else tests a piece; this tests that they meet.
+      - run: npm run test:loop
+
+  mobile:
+    name: mobile · typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: idle/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+        working-directory: idle/apps/mobile
+      # The web export is a shipping target now, and it breaks in ways a
+      # typecheck cannot see — a missing web implementation, a style react-native-web
+      # ignores, a version drift in the Expo toolchain.
+      - run: npx expo export --platform web --output-dir dist
+        working-directory: idle/apps/mobile
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://rosqtabfzpopekfdimrn.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_ehc2nB-b5P_OdsuJBizBKA_gGaY8aqM

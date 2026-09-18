@@ -1,0 +1,110 @@
+{
+  "expo": {
+    "name": "IDLE",
+    "slug": "idle",
+    "scheme": "idle",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "backgroundColor": "#050505",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#050505"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "bundleIdentifier": "app.idle.client",
+      "supportsTablet": false,
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "To scan a friend's QR code.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSContactsUsageDescription": "To find which of your contacts are already on IDLE. Matching happens on this device and your contacts are never uploaded."
+      },
+      "associatedDomains": [
+        "applinks:idle.app"
+      ]
+    },
+    "android": {
+      "package": "app.idle.client",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#050505"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_CONTACTS"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "idle.app",
+              "pathPrefix": "/i"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-apple-authentication",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "To scan a friend's QR code."
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": []
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "To find which of your contacts are already on IDLE. Matching happens on this device and your contacts are never uploaded."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#FFC16B",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": false
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    }
+  }
+}
