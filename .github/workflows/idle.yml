@@ -49,6 +49,15 @@ jobs:
       # the platform objects the schema assumes, Supabase's default privileges
       # included, so the revokes in migration 000200 are genuinely exercised.
       - run: bash supabase/tests/run.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: idle/package-lock.json
+      - run: npm ci
+      # The loop the product depends on: the real binary, the real schema, the
+      # real endpoints. Everything else tests a piece; this tests that they meet.
+      - run: npm run test:loop
 
   mobile:
     name: mobile · typecheck

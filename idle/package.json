@@ -13,11 +13,15 @@
     "db:reset": "supabase db reset",
     "db:diff": "supabase db diff",
     "functions:serve": "supabase functions serve --no-verify-jwt",
-    "test": "npm run test --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present && npm run db:test && npm run test:loop",
     "lint": "npm run lint --workspaces --if-present",
-    "db:test": "bash supabase/tests/run.sh"
+    "db:test": "bash supabase/tests/run.sh",
+    "test:loop": "node --test test/presence-loop.test.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "pg": "^8.23.0"
   }
 }

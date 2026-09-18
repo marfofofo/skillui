@@ -17,8 +17,12 @@ guess, and the first milestone is the one that will change all the others.
 | **Not built** | Push notifications, avatar upload, profile editing, data export, blocked-accounts list, deep links, the desktop app |
 | **Does not exist yet** | A Supabase project, an Apple account, a Play account, the domain, a privacy policy, CI |
 
-The riskiest assumption in the repository is that presence works end to end. It
-is tested at the database level and at the CLI level, and the two have never met.
+~~The riskiest assumption in the repository is that presence works end to end.~~
+**Closed.** `npm run test:loop` stands the real endpoints up against the real
+schema and drives them with the real binary: a light comes on, survives a beat,
+goes out on session-end, and goes out by itself when a terminal is unplugged. The
+only link still untested is Supabase's edge runtime, which needs the hosted
+project.
 
 ---
 

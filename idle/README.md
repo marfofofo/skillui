@@ -82,9 +82,16 @@ npm install                      # workspaces: agent + mobile
 ./scripts/setup.sh               # link the hosted project, migrate, deploy
 npm run mobile                   # expo start
 
-npm test --workspace=idle-agent  # 28 CLI tests: privacy, settings merging, e2e
-npm run db:test                  # 101 database assertions, no Docker needed
+npm test --workspace=idle-agent  # 35 CLI tests: privacy, settings merging, e2e
+npm run db:test                  # 148 database assertions, no Docker needed
+npm run test:loop                # the whole presence loop: terminal -> light
 ```
 
 `npm run db:test` applies every migration to a throwaway PostgreSQL database and
 asserts what the schema must refuse — see [`supabase/tests/`](supabase/tests/).
+
+`npm run test:loop` is the one that matters most: it stands the real endpoints up
+against the real schema and drives them with the real `idle` binary, so a light
+actually comes on, stays on through a beat, goes out on `session-end`, and goes
+out **by itself** when a terminal is unplugged. Everything else tests a piece;
+this tests that the pieces meet.
