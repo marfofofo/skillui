@@ -75,7 +75,7 @@ those people's knowledge. We access the address book and never collect it: see
 | Requirement | Note |
 |---|---|
 | **Data safety form** | Must match `docs/PRESENCE_PROTOCOL.md` and `docs/CONTACTS.md` exactly. Declare: email, name, user IDs. Contacts: accessed on device, **not collected**, not shared. Encrypted in transit, deletable on request. |
-| **Account deletion** | Both in-app **and** a publicly reachable web URL (`idle.app/delete`) that works without installing the app. Play checks the URL. |
+| **Account deletion** | In-app, and `idle.app/delete` on the web build — which is the real app, so the URL leads to the actual button rather than a request form. **Built**; needs the domain. |
 | **Target API level** | Keep on the current Play requirement; Expo SDK upgrades track it. |
 | **16 KB page sizes** | Required for 64-bit native libs. Expo SDK handles it; verify at build. |
 | **Families policy** | We are not targeting children. Set the target audience to 13+ (16+ in the EU) so the Families policy does not attach. |

@@ -12,9 +12,10 @@ import { T, Label } from "@/design/Text";
 import { Lamp } from "@/design/Lamp";
 import { IconButton } from "@/design/Icon";
 import { PresenceRow } from "@/design/PresenceRow";
+import { Step } from "@/design/Step";
 import { COLOR, SPACE, GUTTER, HAIRLINE } from "@/design/tokens";
 import { useFriends } from "@/lib/presence";
-import { getIncomingRequests, getMyPresence, getSuggestions } from "@/lib/api";
+import { getDevices, getIncomingRequests, getMyPresence, getSuggestions } from "@/lib/api";
 import { AGENT_LABEL, type Agent, type Friend } from "@/lib/types";
 import { useSession } from "@/lib/session";
 
@@ -34,18 +35,21 @@ export default function TheList() {
   const [requestCount, setRequestCount] = useState(0);
   const [suggestionCount, setSuggestionCount] = useState(0);
   const [me, setMe] = useState<{ is_live: boolean; agent: Agent | null } | null>(null);
+  const [hasTerminal, setHasTerminal] = useState<boolean | null>(null);
   const [now, setNow] = useState(clock);
 
   const loadBadges = useCallback(async () => {
     try {
-      const [requests, suggestions, mine] = await Promise.all([
+      const [requests, suggestions, mine, devices] = await Promise.all([
         getIncomingRequests(),
         getSuggestions(20),
         getMyPresence(),
+        getDevices(),
       ]);
       setRequestCount(requests.length);
       setSuggestionCount(suggestions.length);
       setMe(mine);
+      setHasTerminal(devices.length > 0);
     } catch {
       // A badge is not worth an error state.
     }
@@ -100,19 +104,30 @@ export default function TheList() {
           <T variant="display" tone="asleep">
             Nobody yet
           </T>
-          <T variant="body" tone="dim" style={{ marginTop: SPACE.m, maxWidth: 280 }}>
-            You have to know someone. Send them your code, scan theirs, or find
-            the ones already in your phone.
+          <T variant="body" tone="dim" style={{ marginTop: SPACE.m, maxWidth: 290 }}>
+            Two things and you are in. Neither takes a minute.
           </T>
-          <Pressable
-            onPress={() => router.push("/(app)/add")}
-            accessibilityRole="button"
-            style={{ marginTop: SPACE.l }}
-          >
-            <T variant="mono" tone="lamp">
-              Add someone
-            </T>
-          </Pressable>
+
+          <View style={{ marginTop: SPACE.xl }}>
+            <Step
+              done={!!hasTerminal}
+              title="Pair a terminal"
+              description={
+                hasTerminal
+                  ? "Done. Your friends will see your light when you start a session."
+                  : "This is what makes you visible. One command on the machine you code on."
+              }
+              action="Get a code"
+              onPress={() => router.push("/(app)/settings/pair")}
+            />
+            <Step
+              done={false}
+              title="Add one person"
+              description="There is no search here — you reach someone by code, link or QR, or you find the ones already in your phone."
+              action="Add someone"
+              onPress={() => router.push("/(app)/add")}
+            />
+          </View>
         </View>
       ) : (
         <FlatList

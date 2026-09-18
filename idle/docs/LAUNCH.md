@@ -62,7 +62,7 @@ Everything here is named in `COMPLIANCE.md` and not yet built.
 | ~~**Data export** (GDPR Art. 20)~~ | **Done.** Settings → Your data → one file, and the file states what is *not* in it |
 | ~~**Blocked accounts list + unblock**~~ | **Done.** Settings → Blocked |
 | ~~**Profile editing**~~ | **Done.** Settings → Edit profile |
-| **Web deletion URL** (`/delete`) | Play requires one reachable *without installing the app* |
+| ~~**Web deletion URL** (`/delete`)~~ | **Done.** The web build *is* the app, so `/delete` signs you in and hands you the real button. No request form, nothing to wait for |
 | **Privacy policy, terms, support page** | Three live URLs. Referenced in seventeen places in the code as `idle.app`, which nobody owns |
 | **Universal Links / App Links** | Configured and the `/i/[code]` route is built; needs the Team ID and the Android fingerprint filled in — `docs/UNIVERSAL_LINKS.md` |
 | Fix the stale 1.2 table in `COMPLIANCE.md` | Report, block and contact info are built; the doc still says TODO |
@@ -83,9 +83,9 @@ Things a person will notice are missing within ten minutes.
 | ~~**Push notifications**~~ | **Done.** Triggers fill an outbox, a scheduled function drains it to Expo. Two kinds only, capped at one per friend per six hours and five a day |
 | **Avatar upload** | Storage bucket, RLS policy, image picker, resize on device |
 | **Error reporting** (Sentry) | Right now, if heartbeats fail for a whole platform we find out from a tweet |
-| **First-run path** | A new account has no friends and no terminal. The empty state is designed; the *journey out of it* is not |
+| ~~**First-run path**~~ | **Done.** The empty list carries the two steps, each with a lamp that lights when it is finished — no wizard, same vocabulary as a friend |
 | **Codex verified end to end** | The CLI writes the hooks; nobody has watched a real Codex fire one |
-| **Funnel instrumentation** | Pairing a terminal is both our moat and our biggest drop-off. Measure it before optimising it |
+| ~~**Funnel instrumentation**~~ | **Done.** `funnel()` computes the five steps from rows the schema already holds — no vendor, no event pipeline, demo accounts excluded |
 
 **Exit criteria:** someone who is not us installs it cold and gets to a lit lamp
 without asking us anything.
@@ -100,7 +100,7 @@ without asking us anything.
 |---|---|
 | Publish `idle-agent` to npm | The name needs checking — it may be taken |
 | Claude Code plugin marketplace repo + `/plugin install idle@idle` | Free distribution channel, and the nicest possible onboarding |
-| `idle doctor` | Tells you why your light is not on. Will save every support email |
+| ~~`idle doctor`~~ | **Done.** Names the first thing that is wrong, including the stale binary path nobody guesses |
 
 **Exit criteria:** `npx idle-agent link CODE` works on a machine that has never
 seen this repo.

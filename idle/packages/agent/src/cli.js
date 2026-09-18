@@ -6,6 +6,7 @@ import { VERSION, API_URL } from "./constants.js";
 import { readCredentials, writeCredentials, clearCredentials, readState, CREDENTIALS_PATH } from "./config.js";
 import { pair } from "./api.js";
 import { runHook } from "./hook.js";
+import { diagnose, THROTTLE_SECONDS } from "./doctor.js";
 import {
   installClaude,
   installCodex,
@@ -33,6 +34,7 @@ function help() {
   blank();
   say(`  ${bold("idle link")} ${dim("<CODE>")}      pair this terminal with your account`);
   say(`  ${bold("idle status")}            what is linked, and when it last reported`);
+  say(`  ${bold("idle doctor")}            find out why your light is not on`);
   say(`  ${bold("idle unlink")}            remove the hooks and forget the token`);
   blank();
   say(`  ${concrete("Get your code from the app: SETTINGS → \"PAIR A TERMINAL\"")}`);
@@ -151,6 +153,42 @@ function status() {
 
 // ---------------------------------------------------------------------------
 
+async function doctor() {
+  blank();
+  say(`  ${WORDMARK}`);
+  blank();
+
+  const checks = await diagnose();
+  const failed = checks.filter((check) => check.ok === false);
+
+  for (const check of checks) {
+    const mark = check.ok === true ? signal("·") : check.ok === false ? bold("×") : concrete("·");
+    say(`  ${mark} ${check.label.padEnd(34)} ${concrete(check.detail)}`);
+  }
+
+  blank();
+  if (failed.length === 0) {
+    rule();
+    say(`  ${concrete(`Everything here is working. Your light comes on when an agent runs,`)}`);
+    say(`  ${concrete(`and beats at most once every ${THROTTLE_SECONDS}s after that.`)}`);
+    rule();
+  } else {
+    rule();
+    // The first failure is almost always the cause; the rest tend to follow.
+    say(`  ${bold("Start here:")} ${failed[0].label}`);
+    if (failed[0].fix) say(`  ${concrete(failed[0].fix)}`);
+    if (failed.length > 1) {
+      say(`  ${concrete(`(${failed.length - 1} more, probably caused by this one)`)}`);
+    }
+    rule();
+  }
+  blank();
+
+  return failed.length === 0 ? 0 : 1;
+}
+
+// ---------------------------------------------------------------------------
+
 function unlink() {
   const removed =
     uninstallFrom(claudeSettingsPath()) + uninstallFrom(codexHooksPath());
@@ -188,6 +226,8 @@ export async function main(argv = process.argv.slice(2)) {
       return link(args);
     case "status":
       return status();
+    case "doctor":
+      return doctor();
     case "unlink":
       return unlink();
     case "--version":

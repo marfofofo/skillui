@@ -220,3 +220,24 @@ $$;
 grant execute on function tests.claim(int) to authenticated;
 grant execute on function tests.mark_sent(uuid[]) to authenticated;
 grant execute on function tests.enqueue_exhausted(uuid) to authenticated;
+
+create or replace function tests.funnel()
+returns jsonb language sql security definer set search_path = '' as $$
+  select public.funnel();
+$$;
+
+grant execute on function tests.funnel() to authenticated;
+
+/** The device API is service-role only; these stand in for the edge functions. */
+create or replace function tests.pair(p_code text, p_hash text, p_label text)
+returns void language sql security definer set search_path = '' as $$
+  select public.pair_device(p_code, p_hash, p_label, null);
+$$;
+
+create or replace function tests.beat_device(p_hash text, p_event text, p_agent public.agent_kind)
+returns boolean language sql security definer set search_path = '' as $$
+  select public.record_heartbeat(p_hash, p_event, p_agent);
+$$;
+
+grant execute on function tests.pair(text, text, text) to authenticated;
+grant execute on function tests.beat_device(text, text, public.agent_kind) to authenticated;
