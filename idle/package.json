@@ -1,0 +1,22 @@
+{
+  "name": "idle",
+  "private": true,
+  "version": "0.1.0",
+  "description": "\"SOCIAL NETWORK\" FOR ENGINEERS",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "mobile": "npm run start --workspace=idle-mobile",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset",
+    "db:diff": "supabase db diff",
+    "functions:serve": "supabase functions serve --no-verify-jwt",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
