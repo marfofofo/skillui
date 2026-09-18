@@ -15,12 +15,12 @@ social surface (names, handles, bios, avatars), but Apple applies 1.2 to any of 
 
 | Requirement | Where it lives | Status |
 |---|---|---|
-| A method for filtering objectionable content | Handle/bio validation + denylist on write | TODO |
-| A mechanism to **report** offensive content | `"REPORT"` on every profile sheet | TODO |
-| The ability to **block** abusive users | `"BLOCK"` — hides both ways, breaks the edge | TODO |
-| Published contact info for the developer | Settings → `"CONTACT"` + App Store listing | TODO |
-| Act on reports and eject the offender **within 24 hours** | `reports` table + on-call rota + a documented SLA | TODO |
-| An EULA users agree to at signup | Apple's standard EULA + our terms, linked at signup | TODO |
+| A method for filtering objectionable content | Reserved-handle trigger + length limits on write | **Built** |
+| A mechanism to **report** offensive content | Report on every profile sheet, six reasons | **Built** |
+| The ability to **block** abusive users | Block — symmetric, total, silent; breaks the edge both ways | **Built** |
+| Published contact info for the developer | Settings → Contact us + App Store listing | **Built**, needs a live address |
+| Act on reports and eject the offender **within 24 hours** | `reports` table built; **no moderation surface and no rota yet** — see `LAUNCH.md` M4 |
+| An EULA users agree to at signup | Linked at signup in the sign-in screen; **the pages do not exist yet** — `LAUNCH.md` M1 |
 
 Blocking must be **symmetric and total**: a blocked account cannot see your
 presence, cannot appear in your suggestions, cannot send you a request, and the
@@ -92,11 +92,11 @@ those people's knowledge. We access the address book and never collect it: see
 | Third parties' data | None processed. Contact matching happens on the device and transmits 16-bit buckets, not addresses — `CONTACTS.md`. The Twoo decision (BE DPA, €50,000) is the precedent this design exists to avoid |
 | Right of access / portability | Settings → `"EXPORT"` → signed JSON of everything we hold, emailed |
 | Right to erasure | The same `delete_account()` RPC as 5.1.1(v), completed immediately |
-| Records of processing | `docs/ROPA.md` — TODO before launch |
+| Records of processing | `docs/ROPA.md` — not written. `LAUNCH.md` M4 |
 | Processor agreement | Supabase DPA signed; EU region (`eu-central-1`) for the project |
 | Sub-processors | Supabase, Expo/EAS, Apple, Google. Listed publicly in the privacy policy |
 | Retention | Presence rows hold no history. Heartbeat logs 7 days. Reports 12 months |
-| Breach notification | 72 hours. Runbook in `docs/INCIDENT.md` — TODO |
+| Breach notification | 72 hours. Runbook `docs/INCIDENT.md` — not written. `LAUNCH.md` M4 |
 | DPO | Not required at our scale; revisit at 100k users or any special-category data |
 | Age | 16 in the EU by default (13 where a member state lowers it); enforced at signup |
 

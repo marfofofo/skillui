@@ -63,6 +63,7 @@ Four ways in, and not one of them can reach a stranger:
 | [`docs/PRESENCE_PROTOCOL.md`](docs/PRESENCE_PROTOCOL.md) | Exactly what leaves your machine |
 | [`docs/CONTACTS.md`](docs/CONTACTS.md) | How contact matching works without uploading contacts |
 | [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) | What the App Store, Play and the GDPR require |
+| [`docs/LAUNCH.md`](docs/LAUNCH.md) | **What stands between this and the App Store** |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | What comes next, and what never will |
 | `packages/agent/` | The CLI your coding agent's hooks call |
 | `supabase/` | Postgres schema, row-level security, edge functions |
