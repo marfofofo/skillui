@@ -2,7 +2,7 @@ import { Text as RNText, type TextProps as RNTextProps } from "react-native";
 import { TYPE, type Variant } from "./type";
 import { usePalette } from "./tokens";
 
-type Tone = "ink" | "paper" | "concrete" | "signal" | "caution";
+type Tone = "ink" | "paper" | "concrete" | "signal" | "signalOnPaper" | "signalOnInk" | "caution";
 
 export type TProps = RNTextProps & {
   variant?: Variant;

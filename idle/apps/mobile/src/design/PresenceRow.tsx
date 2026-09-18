@@ -54,7 +54,7 @@ export function PresenceRow({ handle, isLive, agent, onPress, trailing }: Props)
         c/o
       </T>
       {isLive ? (
-        <T variant="mono" style={{ color: palette.signal }}>
+        <T variant="mono" style={{ color: palette.signalOnInk }}>
           {AGENT_LABEL[agent ?? "claude_code"]}
         </T>
       ) : (

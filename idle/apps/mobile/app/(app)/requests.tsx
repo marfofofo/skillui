@@ -79,7 +79,7 @@ export default function Requests() {
               accessibilityLabel={`Accept ${item.sender?.handle}`}
               style={{ marginRight: SPACE.l }}
             >
-              <T variant="mono" style={{ color: palette.signal }}>
+              <T variant="mono" style={{ color: palette.signalOnPaper }}>
                 ACCEPT
               </T>
             </Pressable>

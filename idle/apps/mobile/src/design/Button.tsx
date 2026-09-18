@@ -1,5 +1,5 @@
 import { Pressable, View, ActivityIndicator, type ViewStyle } from "react-native";
-import { usePalette, SPACE, HAIRLINE } from "./tokens";
+import { usePalette, RAW, SPACE, HAIRLINE } from "./tokens";
 import { T, Meta } from "./Text";
 
 type Kind = "primary" | "ghost" | "destructive";
@@ -31,8 +31,11 @@ export function Button({
 
   const background =
     kind === "primary" ? palette.ink : kind === "destructive" ? palette.caution : "transparent";
+  // A pressed primary turns SIGNAL, and PAPER on SIGNAL is only 3.1:1.
+  // SIGNAL is the same colour in both modes, so its legible partner is too.
   const foreground =
     kind === "primary" ? palette.paper : palette.ink;
+  const pressedForeground = RAW.ink;
   const border = kind === "ghost" ? palette.ink : background;
 
   return (
@@ -56,10 +59,17 @@ export function Button({
           minHeight: 52,
         })}
       >
-        {busy ? (
-          <ActivityIndicator color={foreground} />
+        {({ pressed }: { pressed: boolean }) => busy ? (
+          <ActivityIndicator color={pressed && kind === "primary" ? pressedForeground : foreground} />
         ) : (
-          <T variant="name" style={{ color: foreground, fontSize: 16, letterSpacing: 0.5 }}>
+          <T
+            variant="name"
+            style={{
+              color: pressed && kind === "primary" ? pressedForeground : foreground,
+              fontSize: 16,
+              letterSpacing: 0.5,
+            }}
+          >
             {label.toUpperCase()}
           </T>
         )}

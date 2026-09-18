@@ -78,22 +78,35 @@ already says `INVITE`, its meta-label is `"BUTTON"`.
 
 Six values. No gradients. No shadows. No blur. Ever.
 
-| Token | Hex | Use |
-|---|---|---|
-| `INK` | `#0A0A0A` | Text, rules, the idle world |
-| `PAPER` | `#F4F1EA` | Background. Off-white — the joke is intentional |
-| `SIGNAL` | `#FF3B00` | **Live.** Reserved exclusively for presence. Nothing else may use it |
-| `CAUTION` | `#E4FF3A` | Hazard stripes, warnings, destructive confirms |
-| `CONCRETE` | `#8A8782` | Meta-labels, idle friends, secondary text |
-| `HAIRLINE` | `INK` @ 12% | Every divider, every border. Always exactly 1px |
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `INK` | `#0A0A0A` | `#F4F1EA` | Text, rules, and the background of a live row |
+| `PAPER` | `#F4F1EA` | `#0A0A0A` | The page. Off-white — the joke is intentional |
+| `SIGNAL` | `#FF3B00` | `#FF3B00` | **Live.** Presence only. Never changes |
+| `SIGNAL/PAPER` | `#C42D00` | `#FF3B00` | SIGNAL as small text, on the page |
+| `SIGNAL/INK` | `#FF3B00` | `#C42D00` | SIGNAL as small text, on a live row |
+| `CAUTION` | `#E4FF3A` | `#E4FF3A` | Hazard stripes, destructive confirms |
+| `CONCRETE` | `#6E6B66` | `#9A968F` | Meta-labels, idle friends, secondary text |
+| `HAIRLINE` | `INK` @ 12% | `INK` @ 14% | Every divider, every border. Always exactly 1px |
 
 **The `SIGNAL` law.** `SIGNAL` means one thing and only one thing: *a human being
 is awake and building right now*. It is never used for a CTA, never for an error,
 never for a badge. Spend it on nothing else and it will carry the entire product.
 
-Dark mode inverts `INK` ⇄ `PAPER` and nothing else. `SIGNAL` never changes.
+**Why SIGNAL has two text variants.** `#FF3B00` reaches 5.5:1 against `#0A0A0A`
+but only 3.1:1 against `#F4F1EA` — below the 4.5:1 that 14px text needs. Since a
+live row is inverted, it sits on the *opposite* background from the page, so the
+legible variant flips with it. The brand colour never changes; where it stays
+readable does. As a fill, or as a 1px rule, `#FF3B00` is used everywhere
+unmodified (3:1 is the bar for a non-text element, and it clears it).
 
----
+**Text on a SIGNAL fill is always `#0A0A0A`**, in both modes. `PAPER` on `SIGNAL`
+is 3.1:1 and fails.
+
+**CONCRETE is tuned per mode** for the same reason: no single grey clears 4.5:1
+against both `#0A0A0A` and `#F4F1EA`.
+
+Dark mode inverts `INK` ⇄ `PAPER`. Nothing else moves.
 
 ## 06 — TYPE
 

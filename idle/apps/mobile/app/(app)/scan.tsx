@@ -95,7 +95,7 @@ export default function Scan() {
           accessibilityRole="button"
           style={{ marginTop: SPACE.m }}
         >
-          <T variant="meta" style={{ color: RAW.concrete }}>
+          <T variant="meta" style={{ color: RAW.paper }}>
             &quot;CLOSE&quot;
           </T>
         </Pressable>
