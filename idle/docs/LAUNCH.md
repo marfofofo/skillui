@@ -120,7 +120,7 @@ seen this repo.
 | Screenshots at every required size, description, keywords, age rating | |
 | Privacy nutrition labels (Apple) + Data safety form (Play) | Must match `PRESENCE_PROTOCOL.md` and `CONTACTS.md` line by line |
 | **A way to read the reports queue** | `reports` has no select grant by design. Moderation needs a real surface and a named human. The 24-hour SLA is a promise to Apple |
-| `ROPA.md`, `INCIDENT.md` | Both marked TODO in `COMPLIANCE.md` |
+| ~~`ROPA.md`, `INCIDENT.md`~~ | **Written.** Both need your legal entity details and an on-call contact — marked `[ ]` in the files |
 | TestFlight → external testers → submit | |
 
 **Exit criteria:** in review.

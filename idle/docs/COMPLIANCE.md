@@ -92,11 +92,11 @@ those people's knowledge. We access the address book and never collect it: see
 | Third parties' data | None processed. Contact matching happens on the device and transmits 16-bit buckets, not addresses — `CONTACTS.md`. The Twoo decision (BE DPA, €50,000) is the precedent this design exists to avoid |
 | Right of access / portability | Settings → `"EXPORT"` → signed JSON of everything we hold, emailed |
 | Right to erasure | The same `delete_account()` RPC as 5.1.1(v), completed immediately |
-| Records of processing | `docs/ROPA.md` — not written. `LAUNCH.md` M4 |
+| Records of processing | [`docs/ROPA.md`](ROPA.md) — **written**, from the schema. Needs the legal entity details |
 | Processor agreement | Supabase DPA signed; EU region (`eu-central-1`) for the project |
 | Sub-processors | Supabase, Expo/EAS, Apple, Google. Listed publicly in the privacy policy |
 | Retention | Presence rows hold no history. Heartbeat logs 7 days. Reports 12 months |
-| Breach notification | 72 hours. Runbook `docs/INCIDENT.md` — not written. `LAUNCH.md` M4 |
+| Breach notification | 72 hours. Runbook [`docs/INCIDENT.md`](INCIDENT.md) — **written**. Needs the on-call contact |
 | DPO | Not required at our scale; revisit at 100k users or any special-category data |
 | Age | 16 in the EU by default (13 where a member state lowers it); enforced at signup |
 
