@@ -26,7 +26,7 @@ export type Variant =
 export const TYPE: Record<Variant, TextStyle> = {
   /** The one large thing on a screen, at most. */
   display: {
-    fontFamily: FAMILY.regular,
+    fontFamily: FAMILY.semibold,
     fontSize: 40,
     lineHeight: 44,
     letterSpacing: -1.3,

@@ -113,6 +113,26 @@ first thing that will look dated if it is overdone, so: one per awake person,
 never under a control, never under a heading, and never at a higher opacity than
 this.
 
+### THE ROOM
+
+Two layers sit under everything on the screens that show presence.
+
+**The aurora.** A warm field bleeding from the top, in the lamp's colour and no
+other, whose strength is **the share of your friends who are awake**. Nobody
+awake and the screen is cold black. Everyone awake and the room glows. It ramps
+on a square root, so the first friend is felt and the tenth does not double it,
+and it never exceeds 34%.
+
+This is the rule that keeps it from being decoration: *the atmosphere carries the
+same fact the lamps carry*, read at the scale of the whole screen before you have
+focused on any one name. A screen with nothing to mean gets no aurora — the
+settings, the QR sheet and the delete screen are all cold, on purpose.
+
+**The grain.** A 128px noise tile at 3.5%, over everything. A dark screen with no
+texture reads as a void; a little noise makes it read as a material. It is the
+cheapest thing in this system and the one that does the most for how the product
+feels in the hand.
+
 The lamp never animates on arrival. It cuts. A light does not fade in.
 
 ---
@@ -152,9 +172,18 @@ Air is the main material.
 - **Rows have no dividers.** The space between them is the separation; a group is
   divided by more space, not by a line. There is one `line` in the whole main
   screen, above the controls.
-- Radius: `0` for lists, `8px` for a row highlight, `16px` for the desktop panel.
+- Radius: `0` for lists, `8px` for a row highlight, `20px` for a card, `16px` for
+  the desktop panel. Generous, but never a pill — a fully rounded card is a
+  fashion, and this product should not be datable.
 - Elevation is luminance: a raised surface is `raise` over `canvas` plus a `line`
   border. No drop shadows on content — only under the floating desktop panel.
+
+**No frosted glass.** It is the most seductive thing in every reference we
+looked at and we are not using it. A blurred panel over a moving background is
+where dark interfaces go to fail contrast — the text sits on whatever happens to
+be behind it — and it costs a frame on every scroll. Everything we wanted from it
+(depth, warmth, a surface that feels lit) we get from the aurora, the grain and a
+luminance step, none of which move under the text.
 
 ---
 

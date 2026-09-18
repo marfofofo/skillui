@@ -48,7 +48,7 @@ export default function SignIn() {
   }
 
   return (
-    <Screen>
+    <Screen aurora={0.35}>
       <View style={{ flex: 1, justifyContent: "center" }}>
         <Lamp on size={11} />
         <T variant="display" style={{ marginTop: SPACE.l }}>

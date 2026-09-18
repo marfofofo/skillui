@@ -80,7 +80,7 @@ export default function TheList() {
   ];
 
   return (
-    <Screen gutter={false}>
+    <Screen gutter={false} aurora={total > 0 ? live.length / total : 0}>
       {/* One line of machine type, and then the people. */}
       <View
         style={{

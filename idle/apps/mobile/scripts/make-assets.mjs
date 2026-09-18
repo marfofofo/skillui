@@ -54,3 +54,31 @@ for (const target of TARGETS) {
   writeFileSync(join(OUT, target.file), png);
   console.log(`${target.file.padEnd(22)} ${target.size}px`);
 }
+
+// Grain. A dark screen without texture reads as a void; with a little noise it
+// reads as a material. 128px tile, repeated — cheap, and it has aged well for
+// about forty years. BRAND.md §05.
+{
+  const size = 128;
+  const pixels = Buffer.alloc(size * size * 4);
+  // Deterministic, so the tile is identical on every build.
+  let seed = 0x9e3779b9;
+  const rand = () => {
+    seed ^= seed << 13;
+    seed ^= seed >>> 17;
+    seed ^= seed << 5;
+    return ((seed >>> 0) % 255) / 255;
+  };
+  for (let i = 0; i < size * size; i++) {
+    const v = Math.round(rand() * 255);
+    pixels[i * 4] = v;
+    pixels[i * 4 + 1] = v;
+    pixels[i * 4 + 2] = v;
+    pixels[i * 4 + 3] = 255;
+  }
+  const png = await sharp(pixels, { raw: { width: size, height: size, channels: 4 } })
+    .png()
+    .toBuffer();
+  writeFileSync(join(OUT, "grain.png"), png);
+  console.log(`${"grain.png".padEnd(22)} ${size}px tile`);
+}

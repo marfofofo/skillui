@@ -73,8 +73,37 @@ export const ROW_HEIGHT = 84;
 export const RADIUS = {
   none: 0,
   row: 8,
+  /** Secondary surfaces: cards, sheets, buttons. Generous, never a pill. */
+  card: 20,
   panel: 16,
 } as const;
+
+/**
+ * THE ROOM.
+ *
+ * A warm field bleeding from the top of the screen, in the lamp's own colour and
+ * no other. Its strength is the share of your friends who are awake: nobody
+ * awake and the screen is cold black; everyone awake and the room glows.
+ *
+ * So the atmosphere is not decoration — it is the same fact the lamps carry,
+ * read at the scale of the whole screen before you have focused on any one name.
+ * Nothing else in the product is allowed to be atmospheric.
+ */
+export const AURORA = {
+  /** Never brighter than this, at any occupancy. */
+  maxOpacity: 0.34,
+  /** Even one friend awake should be felt. */
+  minOpacity: 0.1,
+  /** As a share of screen width and height. */
+  spread: 1.7,
+  height: 0.5,
+} as const;
+
+/**
+ * A dark screen with no texture reads as a void. A little noise makes it read
+ * as a material instead. Tiled from assets/grain.png.
+ */
+export const GRAIN_OPACITY = 0.035;
 
 /** 120ms, ease-out. Nothing slower, nothing bouncier. BRAND.md §07. */
 export const MOTION = { cut: 0, quick: 120 } as const;
