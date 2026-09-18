@@ -63,3 +63,11 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
         working-directory: idle/apps/mobile
+      # The web export is a shipping target now, and it breaks in ways a
+      # typecheck cannot see — a missing web implementation, a style react-native-web
+      # ignores, a version drift in the Expo toolchain.
+      - run: npx expo export --platform web --output-dir dist
+        working-directory: idle/apps/mobile
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://rosqtabfzpopekfdimrn.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_ehc2nB-b5P_OdsuJBizBKA_gGaY8aqM

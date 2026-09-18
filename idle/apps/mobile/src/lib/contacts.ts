@@ -9,6 +9,7 @@
 //
 // Nothing identifying about a person who is not a user leaves this file.
 
+import { Platform } from "react-native";
 import * as Contacts from "expo-contacts";
 import * as Crypto from "expo-crypto";
 import { getContactBuckets, getContactMatches, getContactPepper, type ContactMatch } from "./api";
@@ -30,7 +31,11 @@ function chunk<T>(items: T[], size: number): T[][] {
   return out;
 }
 
+/** There is no address book in a browser. */
+export const CONTACTS_SUPPORTED = Platform.OS !== "web";
+
 export async function requestContactsPermission(): Promise<boolean> {
+  if (!CONTACTS_SUPPORTED) return false;
   const { status } = await Contacts.requestPermissionsAsync();
   return status === "granted";
 }

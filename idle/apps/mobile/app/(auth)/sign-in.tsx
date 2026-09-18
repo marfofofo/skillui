@@ -22,7 +22,12 @@ export default function SignIn() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
-      options: { emailRedirectTo: "idle://auth-callback" },
+      options: {
+        // A browser cannot open idle://, so on web the link has to return to
+        // the site it was requested from.
+        emailRedirectTo:
+          Platform.OS === "web" ? window.location.origin : "idle://auth-callback",
+      },
     });
     setBusy(false);
     if (error) Alert.alert("Could not send", error.message);

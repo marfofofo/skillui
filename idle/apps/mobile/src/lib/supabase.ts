@@ -3,7 +3,6 @@
 
 import "react-native-url-polyfill/auto";
 import { createClient } from "@supabase/supabase-js";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
@@ -53,7 +52,10 @@ const secureAdapter = {
 
 export const supabase = createClient(url, anonKey, {
   auth: {
-    storage: Platform.OS === "web" ? AsyncStorage : secureAdapter,
+    // Native keeps the session in the device keychain. On web there is no
+    // keychain and supabase-js already defaults to localStorage, so passing
+    // nothing is both simpler and correct.
+    storage: Platform.OS === "web" ? undefined : secureAdapter,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,

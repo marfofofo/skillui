@@ -106,6 +106,51 @@ the SQL editor.
 
 ---
 
+## THE WEB BUILD (VERCEL)
+
+Expo exports the same app as a static site, so the whole product can be used in a
+browser **today** — no Apple account, no TestFlight, no review. It is the fastest
+way to get to the one check that has never been run.
+
+**It is the real app, not a demo.** Sign-in, the pairing code, the list, presence
+over Realtime: all of it works. You pair a terminal from the browser exactly as
+you would from the phone, because the pairing happens on the machine.
+
+### Deploying
+
+New Vercel project from this repository, then:
+
+| Setting | Value |
+|---|---|
+| Root Directory | `idle/apps/mobile` |
+| Include files outside the root directory | **on** (it is an npm workspace) |
+| Framework Preset | Other |
+| Environment variables | `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` — the values in `.env.example`, both public |
+
+Everything else is in `apps/mobile/vercel.json`: the install runs at the workspace
+root, the build is `expo export`, and every path rewrites to `index.html` because
+expo-router is a single-page app and a hard refresh on `/settings` would 404
+without it.
+
+Then add the deployment URL to Supabase → Authentication → URL Configuration →
+Redirect URLs, or the magic link will bounce.
+
+### What does not work in a browser, and why
+
+| | |
+|---|---|
+| Sign in with Apple | iOS only. The button is hidden on web |
+| Contacts | There is no address book in a browser. The entry point is hidden rather than shown broken |
+| Push notifications | Not built yet on any platform |
+| QR scanning | Needs camera permission over HTTPS; works on a deployed URL, not on `http://localhost` |
+
+Two web-only differences are handled in the code rather than worked around:
+the magic link returns to `window.location.origin` instead of `idle://`, and the
+grain is drawn with an SVG turbulence filter because react-native-web ignores
+`resizeMode="repeat"` and silently draws one tile in the corner.
+
+---
+
 ## LOCAL DEVELOPMENT
 
 The hosted project is not needed to work on the schema:

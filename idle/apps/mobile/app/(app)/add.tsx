@@ -15,6 +15,7 @@ import { Field } from "@/design/Field";
 import { Button } from "@/design/Button";
 import { COLOR, SPACE, HAIRLINE, RADIUS } from "@/design/tokens";
 import { getMyInviteCode, lookupInvite, sendFriendRequest, type InvitePreview } from "@/lib/api";
+import { CONTACTS_SUPPORTED } from "@/lib/contacts";
 
 const LINK_BASE = "https://idle.app/i/";
 
@@ -174,16 +175,20 @@ export default function AddFriend() {
         style={{ marginTop: SPACE.s }}
       />
 
-      <Label style={{ marginTop: SPACE.xl }}>Faster</Label>
-      <Button
-        label="Find friends from your contacts"
-        kind="quiet"
-        onPress={() => router.push("/(app)/contacts")}
-        style={{ marginTop: SPACE.s }}
-      />
-      <T variant="body" tone="faint" style={{ marginTop: SPACE.s, fontSize: 13, lineHeight: 19 }}>
-        Your contacts are matched on this device and never leave it.
-      </T>
+      {CONTACTS_SUPPORTED && (
+        <>
+          <Label style={{ marginTop: SPACE.xl }}>Faster</Label>
+          <Button
+            label="Find friends from your contacts"
+            kind="quiet"
+            onPress={() => router.push("/(app)/contacts")}
+            style={{ marginTop: SPACE.s }}
+          />
+          <T variant="body" tone="faint" style={{ marginTop: SPACE.s, fontSize: 13, lineHeight: 19 }}>
+            Your contacts are matched on this device and never leave it.
+          </T>
+        </>
+      )}
     </Screen>
   );
 }

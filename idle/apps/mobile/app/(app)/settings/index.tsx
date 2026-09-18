@@ -6,6 +6,7 @@ import { Header } from "@/design/Header";
 import { Button } from "@/design/Button";
 import { COLOR, SPACE, HAIRLINE, ROW_HEIGHT } from "@/design/tokens";
 import { useSession } from "@/lib/session";
+import { CONTACTS_SUPPORTED } from "@/lib/contacts";
 
 function Row({ label, onPress }: { label: string; onPress: () => void }) {
   return (
@@ -43,7 +44,9 @@ export default function Settings() {
 
       <Label style={{ marginTop: SPACE.xl, marginBottom: SPACE.s }}>People</Label>
       <Row label="Requests" onPress={() => router.push("/(app)/requests")} />
-      <Row label="Find friends from contacts" onPress={() => router.push("/(app)/contacts")} />
+      {CONTACTS_SUPPORTED && (
+        <Row label="Find friends from contacts" onPress={() => router.push("/(app)/contacts")} />
+      )}
 
       <Label style={{ marginTop: SPACE.xl, marginBottom: SPACE.s }}>About</Label>
       <Row

@@ -8,7 +8,7 @@
 // lamps carry, at the scale of the whole screen — you feel how busy the night is
 // before you have focused on a single name. BRAND.md §05.
 
-import { Image, View, useWindowDimensions } from "react-native";
+import { Image, Platform, View, useWindowDimensions } from "react-native";
 import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
 import { AURORA, COLOR, GRAIN_OPACITY } from "./tokens";
 
@@ -57,22 +57,54 @@ export function Aurora({ intensity }: { intensity: number }) {
   );
 }
 
+const FILL = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  opacity: GRAIN_OPACITY,
+  // On Image this belongs in the style, not the props.
+  pointerEvents: "none",
+} as const;
+
+/**
+ * On web the noise is generated in place with an SVG turbulence filter rather
+ * than resolved from the asset: react-native-web has no resolveAssetSource, and
+ * a data URI needs no plumbing at all.
+ */
+const WEB_NOISE =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E" +
+  "%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E" +
+  "%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)'/%3E%3C/svg%3E\")";
+
 export function Grain() {
+  // react-native-web does not honour resizeMode="repeat" — it draws the tile
+  // once, in the corner. On web the repeat has to be real CSS.
+  if (Platform.OS === "web") {
+    return (
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+        style={[
+          FILL,
+          {
+            backgroundImage: WEB_NOISE,
+            backgroundRepeat: "repeat",
+            backgroundSize: "128px 128px",
+          } as object,
+        ]}
+      />
+    );
+  }
+
   return (
     <Image
       source={GRAIN}
       resizeMode="repeat"
-      pointerEvents="none"
       accessibilityElementsHidden
       importantForAccessibility="no"
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        opacity: GRAIN_OPACITY,
-      }}
+      style={FILL}
     />
   );
 }
