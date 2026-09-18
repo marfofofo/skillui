@@ -18,7 +18,13 @@ create table public.rate_limits (
 );
 
 alter table public.rate_limits enable row level security;
--- No grants: service_role only.
+
+-- Supabase's default privileges grant every NEW table in public to anon and
+-- authenticated. Migration 000200 revoked what existed then; this table is
+-- created afterwards, so it must take its own grants back explicitly.
+-- Row-level security already returns nothing without a policy, but a table
+-- nobody may touch should also carry no grant. Enforced by tests/02_privacy.sql.
+revoke all on public.rate_limits from anon, authenticated;
 
 create or replace function public.rate_limit_hit(
   p_bucket text,

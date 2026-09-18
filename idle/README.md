@@ -76,8 +76,13 @@ npm install                      # workspaces: agent + mobile
 npx supabase start               # local postgres + edge runtime
 npm run db:reset                 # apply migrations + seed
 npm run mobile                   # expo start
-npm test --workspace=idle-agent  # the CLI's privacy tests
+
+npm test --workspace=idle-agent  # 28 CLI tests: privacy, settings merging, e2e
+npm run db:test                  # 83 database assertions, no Docker needed
 ```
+
+`npm run db:test` applies every migration to a throwaway PostgreSQL database and
+asserts what the schema must refuse — see [`supabase/tests/`](supabase/tests/).
 
 ---
 

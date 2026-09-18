@@ -14,7 +14,8 @@
     "db:diff": "supabase db diff",
     "functions:serve": "supabase functions serve --no-verify-jwt",
     "test": "npm run test --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "db:test": "bash supabase/tests/run.sh"
   },
   "engines": {
     "node": ">=20"
