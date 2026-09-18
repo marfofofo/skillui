@@ -23,7 +23,7 @@ export function Field({ label, size = "body", good, style, ...rest }: Props) {
             borderBottomWidth: HAIRLINE,
             borderBottomColor: good ? COLOR.text : COLOR.line,
             color: COLOR.text,
-            fontFamily: size === "big" ? FAMILY.light : FAMILY.regular,
+            fontFamily: FAMILY.regular,
             fontSize: size === "big" ? 32 : 17,
             paddingVertical: SPACE.m,
             marginTop: SPACE.xs,

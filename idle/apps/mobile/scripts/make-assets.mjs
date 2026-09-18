@@ -12,7 +12,7 @@ import sharp from "sharp";
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "assets");
 
-const CANVAS = "#08090B";
+const CANVAS = "#050505";
 const LAMP = "#FFC16B";
 
 /** One warm light in a dark room. The three shadows of §04, as one gradient. */

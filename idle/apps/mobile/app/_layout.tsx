@@ -5,11 +5,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from "expo-splash-screen";
 import {
   useFonts,
-  Geist_300Light,
-  Geist_400Regular,
-  Geist_500Medium,
-  Geist_600SemiBold,
-} from "@expo-google-fonts/geist";
+  InstrumentSans_400Regular,
+  InstrumentSans_500Medium,
+  InstrumentSans_600SemiBold,
+} from "@expo-google-fonts/instrument-sans";
 import { GeistMono_400Regular, GeistMono_500Medium } from "@expo-google-fonts/geist-mono";
 import { SessionProvider } from "@/lib/session";
 import { COLOR } from "@/design/tokens";
@@ -25,10 +24,9 @@ export const SCREEN_OPTIONS = {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    Geist_300Light,
-    Geist_400Regular,
-    Geist_500Medium,
-    Geist_600SemiBold,
+    InstrumentSans_400Regular,
+    InstrumentSans_500Medium,
+    InstrumentSans_600SemiBold,
     GeistMono_400Regular,
     GeistMono_500Medium,
   });

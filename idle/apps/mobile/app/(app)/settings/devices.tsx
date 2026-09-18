@@ -94,7 +94,7 @@ export default function Devices() {
             >
               <Lamp on={live} />
               <View style={{ flexShrink: 1 }}>
-                <T variant="name" tone={live ? "text" : "dim"} numberOfLines={1}>
+                <T variant="personSmall" tone={live ? "text" : "dim"} numberOfLines={1}>
                   {item.label ?? "Unnamed"}
                 </T>
                 <Label style={{ marginTop: SPACE.xs }}>

@@ -1,13 +1,15 @@
 // IDLE — a person.
 //
-// One glance: a light, a name, and what they are speaking through. The row is a
+// The name carries the row; the lamp says whether they are here. The agent sits
+// underneath in mono, because it is a machine and the type says so. The row is a
 // fixed height whether the lamp is on or off, so presence changing never moves
 // anything else on the screen.
 
 import { Pressable, View } from "react-native";
-import { COLOR, SPACE, ROW_HEIGHT, RADIUS } from "./tokens";
+import { COLOR, SPACE, ROW_HEIGHT, RADIUS } from "@/design/tokens";
 import { T } from "./Text";
 import { Lamp } from "./Lamp";
+import { Bloom } from "./Bloom";
 import { AGENT_LABEL, type Agent } from "@/lib/types";
 
 type Props = {
@@ -15,10 +17,10 @@ type Props = {
   isLive: boolean;
   agent: Agent | null;
   onPress?: () => void;
-  trailing?: React.ReactNode;
+  width?: number;
 };
 
-export function PresenceRow({ handle, isLive, agent, onPress, trailing }: Props) {
+export function PresenceRow({ handle, isLive, agent, onPress, width = 340 }: Props) {
   return (
     <Pressable
       onPress={onPress}
@@ -30,28 +32,34 @@ export function PresenceRow({ handle, isLive, agent, onPress, trailing }: Props)
       }
       style={({ pressed }) => ({
         height: ROW_HEIGHT,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: SPACE.m,
+        justifyContent: "center",
         paddingHorizontal: SPACE.s,
         marginHorizontal: -SPACE.s,
         borderRadius: RADIUS.row,
         backgroundColor: pressed ? COLOR.raise : "transparent",
       })}
     >
-      <Lamp on={isLive} />
+      {isLive && <Bloom width={width} height={ROW_HEIGHT} />}
 
-      <T variant="name" tone={isLive ? "text" : "dim"} numberOfLines={1} style={{ flexShrink: 1 }}>
-        {handle}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE.m }}>
+        <Lamp on={isLive} />
+        <T
+          variant="person"
+          tone={isLive ? "text" : "asleep"}
+          numberOfLines={1}
+          style={{ flexShrink: 1 }}
+        >
+          {handle}
+        </T>
+      </View>
+
+      <T
+        variant="micro"
+        tone={isLive ? "faint" : "asleep"}
+        style={{ marginTop: SPACE.s, marginLeft: 7 + SPACE.m }}
+      >
+        {isLive ? AGENT_LABEL[agent ?? "claude_code"] : "idle"}
       </T>
-
-      <View style={{ flex: 1 }} />
-
-      <T variant="mono" tone="faint">
-        {isLive ? AGENT_LABEL[agent ?? "claude_code"] : "—"}
-      </T>
-
-      {trailing}
     </Pressable>
   );
 }

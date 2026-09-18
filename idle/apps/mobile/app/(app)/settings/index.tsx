@@ -21,7 +21,7 @@ function Row({ label, onPress }: { label: string; onPress: () => void }) {
         opacity: pressed ? 0.6 : 1,
       })}
     >
-      <T variant="name" tone="dim">
+      <T variant="personSmall" tone="dim">
         {label}
       </T>
     </Pressable>

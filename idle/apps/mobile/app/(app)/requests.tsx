@@ -59,7 +59,7 @@ export default function Requests() {
             }}
           >
             <Lamp on={false} />
-            <T variant="name" numberOfLines={1} style={{ flexShrink: 1 }}>
+            <T variant="personSmall" numberOfLines={1} style={{ flexShrink: 1 }}>
               {item.sender?.handle ?? "—"}
             </T>
             <View style={{ flex: 1 }} />

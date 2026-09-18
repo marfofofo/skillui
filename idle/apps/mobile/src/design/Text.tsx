@@ -17,7 +17,7 @@ export function T({ variant = "body", tone = "text", style, ...rest }: TProps) {
   );
 }
 
-/** A section header: the smallest type on screen, and the only shouting. */
+/** The smallest type in the product, and the only shouting. */
 export function Label({ tone = "faint", style, ...rest }: TProps) {
-  return <T variant="label" tone={tone} style={style} {...rest} />;
+  return <T variant="micro" tone={tone} style={style} {...rest} />;
 }

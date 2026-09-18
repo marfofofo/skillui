@@ -69,7 +69,7 @@ export default function Suggestions() {
           >
             <Lamp on={false} />
             <View style={{ flexShrink: 1 }}>
-              <T variant="name" numberOfLines={1}>
+              <T variant="personSmall" numberOfLines={1}>
                 {item.handle}
               </T>
               <Label style={{ marginTop: SPACE.xs }}>{mutualLine(item)}</Label>

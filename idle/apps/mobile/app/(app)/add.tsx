@@ -151,7 +151,7 @@ export default function AddFriend() {
 
       {preview && (
         <View style={{ marginTop: SPACE.m }}>
-          <T variant="name">{preview.handle}</T>
+          <T variant="personSmall">{preview.handle}</T>
           {RELATIONSHIP[preview.relationship] ? (
             <T variant="mono" tone="faint" style={{ marginTop: SPACE.xs }}>
               {RELATIONSHIP[preview.relationship]}

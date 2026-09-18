@@ -58,7 +58,7 @@ export default function Pair() {
         <Label>Code</Label>
         <T
           style={{
-            fontFamily: FAMILY.light,
+            fontFamily: FAMILY.regular,
             fontSize: 56,
             lineHeight: 60,
             letterSpacing: 2,

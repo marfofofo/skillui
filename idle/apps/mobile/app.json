@@ -7,11 +7,11 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "icon": "./assets/icon.png",
-    "backgroundColor": "#08090B",
+    "backgroundColor": "#050505",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#08090B"
+      "backgroundColor": "#050505"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -30,7 +30,7 @@
       "package": "app.idle.client",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#08090B"
+        "backgroundColor": "#050505"
       },
       "permissions": [
         "android.permission.CAMERA",

@@ -1,27 +1,49 @@
-// IDLE — six roles. Never a seventh, never italic, never a third family.
+// IDLE — the type is the interface.
 //
-// Weight 450–500 is the baseline rather than 400: light weights thin out badly
-// on a dark background.
+// There is almost no chrome in this product, so names carry the whole screen.
+// Instrument Sans for people, Geist Mono for machines: the two things the app
+// talks about, told apart by their typeface.
 
 import type { TextStyle } from "react-native";
 
 export const FAMILY = {
-  light: "Geist_300Light",
-  regular: "Geist_400Regular",
-  medium: "Geist_500Medium",
-  semibold: "Geist_600SemiBold",
+  regular: "InstrumentSans_400Regular",
+  medium: "InstrumentSans_500Medium",
+  semibold: "InstrumentSans_600SemiBold",
   mono: "GeistMono_400Regular",
   monoMedium: "GeistMono_500Medium",
 } as const;
 
-export type Variant = "display" | "title" | "name" | "body" | "mono" | "label";
+export type Variant =
+  | "display"
+  | "person"
+  | "personSmall"
+  | "title"
+  | "body"
+  | "mono"
+  | "micro";
 
 export const TYPE: Record<Variant, TextStyle> = {
+  /** The one large thing on a screen, at most. */
   display: {
-    fontFamily: FAMILY.light,
+    fontFamily: FAMILY.regular,
     fontSize: 40,
-    lineHeight: 42,
-    letterSpacing: -1.4,
+    lineHeight: 44,
+    letterSpacing: -1.3,
+  },
+  /** A person. The primary unit of this product. */
+  person: {
+    fontFamily: FAMILY.regular,
+    fontSize: 32,
+    lineHeight: 36,
+    letterSpacing: -1,
+  },
+  /** A person in a secondary list, where 32px would shout. */
+  personSmall: {
+    fontFamily: FAMILY.regular,
+    fontSize: 22,
+    lineHeight: 26,
+    letterSpacing: -0.6,
   },
   title: {
     fontFamily: FAMILY.regular,
@@ -29,29 +51,26 @@ export const TYPE: Record<Variant, TextStyle> = {
     lineHeight: 28,
     letterSpacing: -0.6,
   },
-  name: {
-    fontFamily: FAMILY.medium,
-    fontSize: 16,
-    lineHeight: 20,
-    letterSpacing: -0.1,
-  },
   body: {
     fontFamily: FAMILY.regular,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 24,
+    letterSpacing: -0.1,
   },
+  /** Machines: agents, codes, counts. */
   mono: {
     fontFamily: FAMILY.monoMedium,
     fontSize: 11,
     lineHeight: 14,
-    letterSpacing: 0.9,
+    letterSpacing: 1,
     textTransform: "uppercase",
   },
-  label: {
+  /** The smallest type in the product, and the only shouting. */
+  micro: {
     fontFamily: FAMILY.monoMedium,
     fontSize: 10,
     lineHeight: 12,
-    letterSpacing: 1.4,
+    letterSpacing: 1.6,
     textTransform: "uppercase",
   },
 };

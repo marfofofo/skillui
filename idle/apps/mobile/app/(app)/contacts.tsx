@@ -4,7 +4,8 @@
 // book is read, hashed and matched on this device. See src/lib/contacts.ts.
 
 import { useState } from "react";
-import { Alert, FlatList, Pressable, View } from "react-native";
+import { Alert, FlatList, Linking, Pressable, View } from "react-native";
+import { router } from "expo-router";
 import { Screen } from "@/design/Screen";
 import { T, Label } from "@/design/Text";
 import { Header } from "@/design/Header";
@@ -65,36 +66,28 @@ export default function Contacts() {
 
   if (stage !== "done") {
     return (
-      <Screen scroll>
-        <Header title="From your contacts" />
+      <Screen>
+        <Header />
 
-        <T variant="body" tone="dim">
-          We can tell you which of the people already in your phone are on IDLE.
-        </T>
+        <View style={{ flex: 1, justifyContent: "center" }}>
+          <T variant="display">Sync your contacts</T>
+          <T variant="body" tone="dim" style={{ marginTop: SPACE.m, maxWidth: 300 }}>
+            We&apos;ll show you which of the people already in your phone are
+            here.
+          </T>
+        </View>
 
-        <Label style={{ marginTop: SPACE.xl, marginBottom: SPACE.s }}>How it works</Label>
-        <T variant="body" tone="faint" style={{ fontSize: 13, lineHeight: 20 }}>
-          Your contacts are scrambled on this device, and only a fragment of each
-          scrambled address is sent — a fragment so short that a huge number of
-          different addresses share it. The server replies with the scrambled
-          addresses of people who are registered here, and your phone works out
-          the overlap by itself.
-          {"\n\n"}
-          So your address book never leaves this device, we never learn who is in
-          it, and nobody who is not already on IDLE is stored or contacted. We do
-          not send invitations to anyone.
-        </T>
-
-        <Button
-          label="Find my friends"
-          onPress={start}
-          busy={stage === "working"}
-          style={{ marginTop: SPACE.xl }}
-        />
-
-        <T variant="body" tone="faint" style={{ marginTop: SPACE.m, fontSize: 13, lineHeight: 19 }}>
-          You can stop being findable this way in Settings at any time.
-        </T>
+        <View style={{ gap: SPACE.s }}>
+          <Button label="Sync contacts" onPress={start} busy={stage === "working"} />
+          <Button label="Not now" kind="quiet" onPress={() => router.back()} />
+          <Pressable
+            onPress={() => Linking.openURL("https://idle.app/contacts")}
+            accessibilityRole="link"
+            style={{ alignSelf: "center", padding: SPACE.s }}
+          >
+            <Label>Your contacts never leave this phone · how</Label>
+          </Pressable>
+        </View>
       </Screen>
     );
   }
@@ -131,7 +124,7 @@ export default function Contacts() {
             >
               <Lamp on={false} />
               <View style={{ flexShrink: 1 }}>
-                <T variant="name" numberOfLines={1}>
+                <T variant="personSmall" numberOfLines={1}>
                   {item.handle}
                 </T>
                 {item.localName ? (

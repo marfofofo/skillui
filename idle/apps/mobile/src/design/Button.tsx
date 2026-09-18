@@ -63,7 +63,7 @@ export function Button({
         {busy ? (
           <ActivityIndicator color={foreground} />
         ) : (
-          <T variant="name" style={{ color: foreground }}>
+          <T variant="body" style={{ color: foreground, fontSize: 17 }}>
             {label}
           </T>
         )}
