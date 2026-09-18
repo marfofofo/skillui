@@ -4,7 +4,7 @@
 // whole row inverts. The lights literally come on.
 
 import { Pressable, View } from "react-native";
-import { usePalette, SPACE, GUTTER, HAIRLINE } from "./tokens";
+import { usePalette, useInvertedPalette, SPACE, GUTTER, HAIRLINE } from "./tokens";
 import { T } from "./Text";
 import { AGENT_LABEL, type Agent } from "@/lib/types";
 
@@ -17,10 +17,16 @@ type Props = {
 };
 
 export function PresenceRow({ handle, isLive, agent, onPress, trailing }: Props) {
-  const palette = usePalette();
+  const page = usePalette();
+  const inverted = useInvertedPalette();
 
-  const background = isLive ? palette.ink : "transparent";
-  const foreground = isLive ? palette.paper : palette.ink;
+  // A live row is not the page with different colours — it IS the other mode.
+  // Rendering it from the inverted palette means every contrast pairing that
+  // holds on the page holds here too, in both themes, for free.
+  const palette = isLive ? inverted : page;
+
+  const background = isLive ? palette.paper : "transparent";
+  const foreground = palette.ink;
 
   return (
     <Pressable
@@ -35,7 +41,7 @@ export function PresenceRow({ handle, isLive, agent, onPress, trailing }: Props)
         backgroundColor: background,
         opacity: pressed ? 0.85 : 1,
         borderBottomWidth: isLive ? 0 : HAIRLINE,
-        borderBottomColor: palette.hairline,
+        borderBottomColor: page.hairline,
         paddingVertical: SPACE.m,
         paddingHorizontal: isLive ? GUTTER : 0,
         marginHorizontal: isLive ? -GUTTER : 0,
@@ -50,15 +56,15 @@ export function PresenceRow({ handle, isLive, agent, onPress, trailing }: Props)
       <View style={{ flex: 1 }} />
 
       {/* MARCUS          c/o   CLAUDE CODE  — BRAND.md §03 */}
-      <T variant="mono" tone="concrete" style={{ marginRight: SPACE.m }}>
+      <T variant="mono" style={{ color: palette.concrete, marginRight: SPACE.m }}>
         c/o
       </T>
       {isLive ? (
-        <T variant="mono" style={{ color: palette.signalOnInk }}>
+        <T variant="mono" style={{ color: palette.signalText }}>
           {AGENT_LABEL[agent ?? "claude_code"]}
         </T>
       ) : (
-        <T variant="mono" tone="concrete">
+        <T variant="mono" style={{ color: palette.concrete }}>
           —
         </T>
       )}

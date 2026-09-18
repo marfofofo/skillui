@@ -92,7 +92,7 @@ export default function Suggestions() {
               accessibilityRole="button"
               accessibilityLabel={`Add ${item.handle}`}
             >
-              <T variant="mono" style={{ color: sent[item.user_id] ? palette.concrete : palette.signalOnPaper }}>
+              <T variant="mono" style={{ color: sent[item.user_id] ? palette.concrete : palette.signalText }}>
                 {sent[item.user_id] ? "ASKED" : "+ ADD"}
               </T>
             </Pressable>

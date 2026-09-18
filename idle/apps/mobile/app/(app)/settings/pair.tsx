@@ -79,7 +79,7 @@ export default function Pair() {
         >
           {code ? pretty(code) : "•••-•••"}
         </T>
-        <T variant="mono" tone={left > 0 ? "concrete" : "signalOnPaper"} style={{ marginTop: SPACE.s }}>
+        <T variant="mono" tone={left > 0 ? "concrete" : "signalText"} style={{ marginTop: SPACE.s }}>
           {left > 0
             ? `EXPIRES IN ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`
             : "EXPIRED"}

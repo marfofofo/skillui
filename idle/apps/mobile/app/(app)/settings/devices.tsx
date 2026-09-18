@@ -80,7 +80,7 @@ export default function Devices() {
               style={{ marginTop: SPACE.m }}
               accessibilityRole="button"
             >
-              <T variant="mono" style={{ color: palette.signalOnPaper }}>
+              <T variant="mono" style={{ color: palette.signalText }}>
                 PAIR ONE
               </T>
             </Pressable>

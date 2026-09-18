@@ -107,7 +107,7 @@ export default function TheList() {
               accessibilityLabel={`${requestCount} friend requests`}
               hitSlop={8}
             >
-              <T variant="mono" style={{ color: palette.signalOnPaper }}>
+              <T variant="mono" style={{ color: palette.signalText }}>
                 {requestCount} WAITING
               </T>
             </Pressable>
@@ -129,7 +129,7 @@ export default function TheList() {
             style={{ marginTop: SPACE.l }}
             accessibilityRole="button"
           >
-            <T variant="mono" style={{ color: palette.signalOnPaper }}>
+            <T variant="mono" style={{ color: palette.signalText }}>
               + ADD SOMEONE
             </T>
           </Pressable>

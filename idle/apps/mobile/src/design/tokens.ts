@@ -16,15 +16,12 @@ export type Palette = {
   /** The state colour. Fills, and text on INK only. Identical in both modes. */
   signal: string;
   /**
-   * SIGNAL as small TEXT. Pure #FF3B00 clears 4.5:1 against #0A0A0A but only
-   * reaches 3.1:1 against #F4F1EA, so which variant is legible depends on what
-   * it sits on — and an inverted live row sits on the opposite of the page.
-   *   signalOnPaper — on the page background
-   *   signalOnInk   — on the inverted row
-   * The brand colour never changes. Where it stays legible does.
+   * SIGNAL as small TEXT on this palette's own paper. Pure #FF3B00 clears
+   * 4.5:1 against #0A0A0A but reaches only 3.1:1 against #F4F1EA, so the
+   * legible variant depends on the background. The brand colour never
+   * changes; where it stays readable does.
    */
-  signalOnPaper: string;
-  signalOnInk: string;
+  signalText: string;
   caution: string;
   concrete: string;
   hairline: string;
@@ -34,8 +31,7 @@ const LIGHT: Palette = {
   ink: RAW.ink,
   paper: RAW.paper,
   signal: RAW.signal,
-  signalOnPaper: "#C42D00", // 4.95:1 on #F4F1EA
-  signalOnInk: RAW.signal,  // 5.54:1 on #0A0A0A
+  signalText: "#C42D00",  // 4.95:1 on #F4F1EA
   caution: RAW.caution,
   concrete: "#6E6B66",   // 4.66:1 on PAPER
   hairline: "rgba(10,10,10,0.12)",
@@ -47,8 +43,7 @@ const DARK: Palette = {
   ink: RAW.paper,
   paper: RAW.ink,
   signal: RAW.signal,
-  signalOnPaper: RAW.signal, // 5.54:1 on #0A0A0A
-  signalOnInk: "#C42D00",    // 4.95:1 on #F4F1EA
+  signalText: RAW.signal, // 5.54:1 on #0A0A0A
   caution: RAW.caution,
   concrete: "#9A968F",    // 6.72:1 on INK
   hairline: "rgba(244,241,234,0.14)",
@@ -56,6 +51,18 @@ const DARK: Palette = {
 
 export function usePalette(): Palette {
   return useColorScheme() === "dark" ? DARK : LIGHT;
+}
+
+/**
+ * The opposite palette.
+ *
+ * A live row inverts: ink background, paper text. That is not a set of colour
+ * exceptions, it is the other mode — so it renders in the other palette, and
+ * every contrast pairing that holds on a page holds there too, automatically.
+ * See BRAND.md §02 and §05.
+ */
+export function useInvertedPalette(): Palette {
+  return useColorScheme() === "dark" ? LIGHT : DARK;
 }
 
 /** 8pt grid. There is no spacing value between these. */

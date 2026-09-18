@@ -83,8 +83,7 @@ Six values. No gradients. No shadows. No blur. Ever.
 | `INK` | `#0A0A0A` | `#F4F1EA` | Text, rules, and the background of a live row |
 | `PAPER` | `#F4F1EA` | `#0A0A0A` | The page. Off-white — the joke is intentional |
 | `SIGNAL` | `#FF3B00` | `#FF3B00` | **Live.** Presence only. Never changes |
-| `SIGNAL/PAPER` | `#C42D00` | `#FF3B00` | SIGNAL as small text, on the page |
-| `SIGNAL/INK` | `#FF3B00` | `#C42D00` | SIGNAL as small text, on a live row |
+| `SIGNAL/TEXT` | `#C42D00` | `#FF3B00` | SIGNAL as small text |
 | `CAUTION` | `#E4FF3A` | `#E4FF3A` | Hazard stripes, destructive confirms |
 | `CONCRETE` | `#6E6B66` | `#9A968F` | Meta-labels, idle friends, secondary text |
 | `HAIRLINE` | `INK` @ 12% | `INK` @ 14% | Every divider, every border. Always exactly 1px |
@@ -93,12 +92,17 @@ Six values. No gradients. No shadows. No blur. Ever.
 is awake and building right now*. It is never used for a CTA, never for an error,
 never for a badge. Spend it on nothing else and it will carry the entire product.
 
-**Why SIGNAL has two text variants.** `#FF3B00` reaches 5.5:1 against `#0A0A0A`
-but only 3.1:1 against `#F4F1EA` — below the 4.5:1 that 14px text needs. Since a
-live row is inverted, it sits on the *opposite* background from the page, so the
-legible variant flips with it. The brand colour never changes; where it stays
-readable does. As a fill, or as a 1px rule, `#FF3B00` is used everywhere
-unmodified (3:1 is the bar for a non-text element, and it clears it).
+**Why SIGNAL has a text variant.** `#FF3B00` reaches 5.5:1 against `#0A0A0A` but
+only 3.1:1 against `#F4F1EA` — below the 4.5:1 that 14px text needs. As a fill,
+or as a 1px rule, `#FF3B00` is used everywhere unmodified: 3:1 is the bar for a
+non-text element and it clears it. As small text it takes the variant that is
+legible on the background it lands on.
+
+**A live row is the other mode, not a set of exceptions.** It inverts, so it
+renders from the *inverted palette* — `useInvertedPalette()` in
+`apps/mobile/src/design/tokens.ts`. That one decision is why `c/o` and the agent
+name stay readable on a live row in both themes without a single special case,
+and it is the rule to reach for any time a surface inverts.
 
 **Text on a SIGNAL fill is always `#0A0A0A`**, in both modes. `PAPER` on `SIGNAL`
 is 3.1:1 and fails.
