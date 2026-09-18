@@ -245,6 +245,46 @@ export async function revokeDevice(deviceId: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+// --- your data --------------------------------------------------------------
+
+export type BlockedPerson = {
+  user_id: string;
+  handle: string;
+  display_name: string | null;
+  created_at: string;
+};
+
+/**
+ * Blocking hides a person from you completely — including from your own reads of
+ * `profiles`. This comes from a function that can see past that policy, or there
+ * would be no way to undo a block.
+ */
+export async function getMyBlocks(): Promise<BlockedPerson[]> {
+  return unwrap(await supabase.rpc("my_blocks")) ?? [];
+}
+
+export async function updateMyProfile(fields: {
+  display_name?: string | null;
+  bio?: string | null;
+}): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) throw new Error("not_authenticated");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      display_name: fields.display_name?.trim() || null,
+      bio: fields.bio?.trim() || null,
+    })
+    .eq("id", auth.user.id);
+  if (error) throw new Error(error.message);
+}
+
+/** GDPR Art. 20: everything we hold, in one call, with no ticket and no wait. */
+export async function exportMyData(): Promise<unknown> {
+  return unwrap(await supabase.rpc("export_my_data"));
+}
+
 // --- erasure ----------------------------------------------------------------
 
 /** App Store 5.1.1(v) and GDPR Art. 17 are the same button. */

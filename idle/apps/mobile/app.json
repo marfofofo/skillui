@@ -24,7 +24,10 @@
         "NSCameraUsageDescription": "To scan a friend's QR code.",
         "ITSAppUsesNonExemptEncryption": false,
         "NSContactsUsageDescription": "To find which of your contacts are already on IDLE. Matching happens on this device and your contacts are never uploaded."
-      }
+      },
+      "associatedDomains": [
+        "applinks:idle.app"
+      ]
     },
     "android": {
       "package": "app.idle.client",
@@ -40,6 +43,23 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "idle.app",
+              "pathPrefix": "/i"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
       ]
     },
     "plugins": [

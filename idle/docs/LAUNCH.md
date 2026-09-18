@@ -58,13 +58,13 @@ Everything here is named in `COMPLIANCE.md` and not yet built.
 
 | | Why |
 |---|---|
-| **Reviewer demo account** with seeded friends and simulated presence | App Review cannot install Claude Code and pair a terminal. Without this they see an empty app and reject under 4.2. **Highest-probability rejection in the whole list** |
-| **Data export** (GDPR Art. 20) | `COMPLIANCE.md` promises Settings → Export. It does not exist |
-| **Blocked accounts list + unblock** | `unblock_user()` exists with no screen. Apple asks to see it |
-| **Profile editing** (display name, bio) | Both columns exist and are writable; there is no way for a person to set them |
+| ~~**Reviewer demo account**~~ | **Done.** `supabase/demo.sql` seeds it; five friends on staggered schedules, so two are awake at any moment and the list changes while they watch |
+| ~~**Data export** (GDPR Art. 20)~~ | **Done.** Settings → Your data → one file, and the file states what is *not* in it |
+| ~~**Blocked accounts list + unblock**~~ | **Done.** Settings → Blocked |
+| ~~**Profile editing**~~ | **Done.** Settings → Edit profile |
 | **Web deletion URL** (`/delete`) | Play requires one reachable *without installing the app* |
 | **Privacy policy, terms, support page** | Three live URLs. Referenced in seventeen places in the code as `idle.app`, which nobody owns |
-| **Universal Links / App Links** | `idle.app/i/CODE` currently opens a browser and dies. An invite link that does not open the app breaks the main growth loop |
+| **Universal Links / App Links** | Configured and the `/i/[code]` route is built; needs the Team ID and the Android fingerprint filled in — `docs/UNIVERSAL_LINKS.md` |
 | Fix the stale 1.2 table in `COMPLIANCE.md` | Report, block and contact info are built; the doc still says TODO |
 
 **Exit criteria:** the pre-submission checklist in `COMPLIANCE.md` is green with

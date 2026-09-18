@@ -38,6 +38,11 @@ export default function Settings() {
 
       <T variant="display">{profile?.handle ?? "—"}</T>
 
+      <Label style={{ marginTop: SPACE.xl, marginBottom: SPACE.s }}>You</Label>
+      <Row label="Edit profile" onPress={() => router.push("/(app)/settings/profile")} />
+      <Row label="Blocked" onPress={() => router.push("/(app)/settings/blocked")} />
+      <Row label="Your data" onPress={() => router.push("/(app)/settings/data")} />
+
       <Label style={{ marginTop: SPACE.xl, marginBottom: SPACE.s }}>Terminals</Label>
       <Row label="Pair a terminal" onPress={() => router.push("/(app)/settings/pair")} />
       <Row label="Devices" onPress={() => router.push("/(app)/settings/devices")} />

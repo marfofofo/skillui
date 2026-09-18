@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["REPLACE_WITH_TEAM_ID.app.idle.client"],
+        "components": [
+          { "/": "/i/*", "comment": "Invite links open the app" }
+        ]
+      }
+    ]
+  }
+}

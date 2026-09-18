@@ -133,3 +133,20 @@ end;
 $$;
 
 grant execute on function tests.set_auth_email(uuid, text, boolean) to authenticated;
+
+/** demo_accounts is service-role only; tests reach it through here. */
+create or replace function tests.make_demo(
+  p_uid uuid, p_from int, p_to int, p_agent public.agent_kind
+)
+returns void language plpgsql security definer set search_path = '' as $$
+begin
+  insert into public.demo_accounts (user_id, live_from, live_to, agent)
+  values (p_uid, p_from, p_to, p_agent)
+  on conflict (user_id) do update
+    set live_from = excluded.live_from,
+        live_to = excluded.live_to,
+        agent = excluded.agent;
+end;
+$$;
+
+grant execute on function tests.make_demo(uuid, int, int, public.agent_kind) to authenticated;
