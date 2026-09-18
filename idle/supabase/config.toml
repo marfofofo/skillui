@@ -1,4 +1,4 @@
-project_id = "idle"
+project_id = "rosqtabfzpopekfdimrn"
 
 [api]
 enabled = true
@@ -34,15 +34,13 @@ enable_signup = true
 enable_confirmations = true
 double_confirm_changes = true
 
+# Enabled once the Apple service id and key exist — see docs/SETUP.md. Leaving
+# these on with empty env vars makes `supabase config push` fail, and pushing a
+# half-configured provider is worse than not pushing one.
 [auth.external.apple]
-enabled = true
+enabled = false
 client_id = "env(SUPABASE_AUTH_APPLE_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_APPLE_SECRET)"
-
-[auth.external.google]
-enabled = true
-client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
-secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"
 
 [functions.pair]
 verify_jwt = false

@@ -258,5 +258,21 @@ create policy push_tokens_own on public.push_tokens
 -- Friends' phones learn about a light going on or off from this publication.
 -- Realtime honours RLS, so a subscriber only ever receives rows the policies
 -- above already let them read.
-alter publication supabase_realtime add table public.presence;
-alter publication supabase_realtime add table public.friend_requests;
+-- A hosted project may already publish these (or publish FOR ALL TABLES), and a
+-- duplicate add aborts the whole migration. Adding a table is not worth losing
+-- the deploy over.
+do $$
+begin
+  alter publication supabase_realtime add table public.presence;
+exception when others then
+  raise notice 'IDLE: presence already published, or no supabase_realtime publication';
+end
+$$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.friend_requests;
+exception when others then
+  raise notice 'IDLE: friend_requests already published';
+end
+$$;
