@@ -1,0 +1,25 @@
+{
+  "name": "idle-agent",
+  "version": "0.1.0",
+  "description": "Pair your terminal with \"IDLE\". Your friends see the light come on.",
+  "type": "module",
+  "bin": {
+    "idle": "bin/idle.js"
+  },
+  "main": "src/cli.js",
+  "files": [
+    "bin",
+    "src",
+    "plugin",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {},
+  "keywords": ["idle", "presence", "claude-code", "codex"],
+  "license": "MIT"
+}
