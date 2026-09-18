@@ -80,7 +80,7 @@ Things a person will notice are missing within ten minutes.
 
 | | |
 |---|---|
-| **Push notifications** | `push_tokens` exists and nothing writes to it. Two pushes only: a friend request, and — opt-in — a friend coming online |
+| ~~**Push notifications**~~ | **Done.** Triggers fill an outbox, a scheduled function drains it to Expo. Two kinds only, capped at one per friend per six hours and five a day |
 | **Avatar upload** | Storage bucket, RLS policy, image picker, resize on device |
 | **Error reporting** (Sentry) | Right now, if heartbeats fail for a whole platform we find out from a tweet |
 | **First-run path** | A new account has no friends and no terminal. The empty state is designed; the *journey out of it* is not |

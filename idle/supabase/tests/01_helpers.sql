@@ -150,3 +150,73 @@ end;
 $$;
 
 grant execute on function tests.make_demo(uuid, int, int, public.agent_kind) to authenticated;
+
+create or replace view tests.notifications_raw as
+  select n.id, p.handle::text as recipient, n.kind::text as kind,
+         n.payload ->> 'handle' as about, n.sent_at, n.attempts
+  from public.notifications n join public.profiles p on p.id = n.user_id;
+
+grant select on tests.notifications_raw to anon, authenticated, service_role;
+
+/** push_tokens is the user's own, but tests need to plant one for anybody. */
+create or replace function tests.give_push_token(p_uid uuid, p_token text)
+returns void language plpgsql security definer set search_path = '' as $$
+begin
+  insert into public.push_tokens (user_id, expo_token, platform)
+  values (p_uid, p_token, 'test')
+  on conflict (expo_token) do nothing;
+end;
+$$;
+
+grant execute on function tests.give_push_token(uuid, text) to authenticated;
+
+/** presence is written only by the heartbeat function; tests drive it here. */
+create or replace function tests.set_presence(
+  p_uid uuid, p_live boolean, p_agent public.agent_kind default 'claude_code'
+)
+returns void language plpgsql security definer set search_path = '' as $$
+begin
+  update public.presence
+     set is_live = p_live,
+         agent = case when p_live then p_agent else null end,
+         last_heartbeat_at = now(),
+         updated_at = now()
+   where user_id = p_uid;
+end;
+$$;
+
+/** A heartbeat that does NOT change is_live — the case that must not notify. */
+create or replace function tests.beat(p_uid uuid)
+returns void language plpgsql security definer set search_path = '' as $$
+begin
+  update public.presence set last_heartbeat_at = now(), is_live = is_live
+   where user_id = p_uid;
+end;
+$$;
+
+grant execute on function tests.set_presence(uuid, boolean, public.agent_kind) to authenticated;
+grant execute on function tests.beat(uuid) to authenticated;
+
+/** The drain is service-role only; these let a test stand in for it. */
+create or replace function tests.claim(p_limit int)
+returns table (id uuid, kind public.notification_kind, payload jsonb, tokens text[])
+language sql security definer set search_path = '' as $$
+  select * from public.claim_notifications(p_limit);
+$$;
+
+create or replace function tests.mark_sent(p_ids uuid[])
+returns int language sql security definer set search_path = '' as $$
+  select public.mark_notifications_sent(p_ids);
+$$;
+
+create or replace function tests.enqueue_exhausted(p_uid uuid)
+returns void language plpgsql security definer set search_path = '' as $$
+begin
+  insert into public.notifications (user_id, kind, payload, attempts)
+  values (p_uid, 'friend_request', '{"handle":"nobody"}'::jsonb, 3);
+end;
+$$;
+
+grant execute on function tests.claim(int) to authenticated;
+grant execute on function tests.mark_sent(uuid[]) to authenticated;
+grant execute on function tests.enqueue_exhausted(uuid) to authenticated;

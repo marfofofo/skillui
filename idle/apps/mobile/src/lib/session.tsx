@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import { getMyProfile } from "./api";
+import { unregisterPush } from "./push";
 import type { Profile } from "./types";
 
 type Ctx = {
@@ -66,6 +67,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       loading,
       refreshProfile: loadProfile,
       signOut: async () => {
+        // Take this device's push token with it, or it keeps buzzing for an
+        // account that is no longer signed in here.
+        await unregisterPush();
         await supabase.auth.signOut();
       },
     }),

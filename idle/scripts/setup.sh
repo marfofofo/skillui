@@ -37,6 +37,9 @@ say "3/4  Deploying edge functions"
 # they are deployed without JWT verification — see supabase/config.toml.
 supabase functions deploy pair --no-verify-jwt
 supabase functions deploy heartbeat --no-verify-jwt
+# notify is called by pg_cron, which carries no user session; it authenticates
+# on IDLE_CRON_SECRET instead.
+supabase functions deploy notify --no-verify-jwt
 
 say "4/4  Checking what landed"
 supabase migration list
@@ -52,6 +55,10 @@ Still to do by hand, in the dashboard:
     capped at a few messages an hour and fails SILENTLY — magic links simply
     never arrive and people think the app is broken.
   · Authentication → URL Configuration: add  idle://auth-callback  as a redirect
+  · Set the notification secret and schedule the drain:
+        supabase secrets set IDLE_CRON_SECRET="$(openssl rand -hex 24)"
+    then see docs/SETUP.md for the cron entry that calls it.
+
   · Database → Extensions: enable pg_cron, then run
         select cron.schedule('idle-presence-sweep', '* * * * *',
                              'select public.sweep_presence()');

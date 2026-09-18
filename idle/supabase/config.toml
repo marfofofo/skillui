@@ -47,3 +47,8 @@ verify_jwt = false
 
 [functions.heartbeat]
 verify_jwt = false
+
+# Called by pg_cron, which carries no user session. Authenticates on
+# IDLE_CRON_SECRET instead — see docs/SETUP.md.
+[functions.notify]
+verify_jwt = false

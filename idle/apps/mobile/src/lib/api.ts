@@ -245,6 +245,35 @@ export async function revokeDevice(deviceId: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+// --- settings ---------------------------------------------------------------
+
+export type Settings = {
+  notify_on_request: boolean;
+  notify_on_friend_live: boolean;
+  discoverable_by_handle: boolean;
+  discoverable_by_contact: boolean;
+};
+
+export async function getMySettings(): Promise<Settings | null> {
+  const { data, error } = await supabase
+    .from("user_settings")
+    .select("notify_on_request, notify_on_friend_live, discoverable_by_handle, discoverable_by_contact")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function updateMySettings(fields: Partial<Settings>): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) throw new Error("not_authenticated");
+
+  const { error } = await supabase
+    .from("user_settings")
+    .update({ ...fields, updated_at: new Date().toISOString() })
+    .eq("user_id", auth.user.id);
+  if (error) throw new Error(error.message);
+}
+
 // --- your data --------------------------------------------------------------
 
 export type BlockedPerson = {

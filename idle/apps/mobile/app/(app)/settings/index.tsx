@@ -41,6 +41,7 @@ export default function Settings() {
       <Label style={{ marginTop: SPACE.xl, marginBottom: SPACE.s }}>You</Label>
       <Row label="Edit profile" onPress={() => router.push("/(app)/settings/profile")} />
       <Row label="Blocked" onPress={() => router.push("/(app)/settings/blocked")} />
+      <Row label="Notifications" onPress={() => router.push("/(app)/settings/notifications")} />
       <Row label="Your data" onPress={() => router.push("/(app)/settings/data")} />
 
       <Label style={{ marginTop: SPACE.xl, marginBottom: SPACE.s }}>Terminals</Label>

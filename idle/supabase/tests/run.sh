@@ -27,7 +27,7 @@ done
 "${PSQL[@]}" -d "$DB" -f "$HERE/01_helpers.sql" >/dev/null 2>&1
 
 failed=0
-for suite in "$HERE"/0[2-9]_*.sql; do
+for suite in $(ls "$HERE"/[0-9][0-9]_*.sql | grep -v "_helpers\|_bootstrap" | sort); do
   if ! "${PSQL[@]}" -d "$DB" -f "$suite" 2>&1 \
       | sed 's/^psql:[^ ]*: //; s/^NOTICE:  //'; then
     failed=1

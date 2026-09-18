@@ -83,6 +83,15 @@
         {
           "contactsPermission": "To find which of your contacts are already on IDLE. Matching happens on this device and your contacts are never uploaded."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#FFC16B",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": false
+        }
       ]
     ],
     "experiments": {

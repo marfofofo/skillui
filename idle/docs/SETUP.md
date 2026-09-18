@@ -67,6 +67,39 @@ without `pg_cron` should still get the schema. But without the first one, a
 terminal that is killed or loses power **never goes dark** — its light stays on
 for everyone, forever. It is the least obvious and most damaging thing to skip.
 
+### 4. The notification drain
+
+Notifications are written to an outbox by database triggers and delivered by the
+`notify` function on a schedule, so a slow push service can never slow down
+accepting a friend or starting a coding session.
+
+First give the function a secret — it is called by cron, not by a person, so it
+has no user session to check:
+
+```bash
+supabase secrets set IDLE_CRON_SECRET="$(openssl rand -hex 24)"
+```
+
+Then enable `pg_net` alongside `pg_cron` and schedule the call, pasting the same
+secret:
+
+```sql
+select cron.schedule('idle-notify', '* * * * *', $$
+  select net.http_post(
+    url := 'https://rosqtabfzpopekfdimrn.supabase.co/functions/v1/notify',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-idle-cron-secret', 'PASTE_THE_SAME_SECRET'
+    ),
+    body := '{}'::jsonb
+  );
+$$);
+```
+
+Without this, notifications accumulate in the outbox and are never delivered.
+Nothing else breaks — which is the point of an outbox — but nobody is ever told
+anything.
+
 ---
 
 ## SIGN IN WITH APPLE
