@@ -7,47 +7,82 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AI Remote">
-  <meta name="theme-color" content="#0b0b0f">
+  <meta name="theme-color" content="#0e0d0c">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fragment+Mono&family=Instrument+Serif:ital@0;1&display=swap">
   <link rel="stylesheet" href="style.css">
   <title>AI Remote</title>
 </head>
-<body>
-  <header>
-    <div class="conn"><span id="dot" class="dot"></span><span id="host">Connessione…</span></div>
-    <div class="actions">
-      <button id="speakToggle" class="chip" aria-pressed="true" title="Voce">🔊</button>
-      <button id="reset" class="chip" title="Nuova conversazione">↺</button>
+<body data-state="offline">
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="bar">
+    <div class="brand">
+      <span class="led" aria-hidden="true"></span>
+      <span class="mono">AI·REMOTE</span>
+      <span id="host" class="mono dim">—</span>
     </div>
+    <nav class="keys">
+      <button id="historyBtn" class="key" aria-label="Cronologia">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+      </button>
+      <button id="speakToggle" class="key" aria-label="Voce" aria-pressed="true">
+        <svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path class="wave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="mute" d="M16 9l6 6M22 9l-6 6"/></svg>
+      </button>
+      <button id="reset" class="key" aria-label="Nuova conversazione">
+        <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></svg>
+      </button>
+    </nav>
   </header>
 
-  <main>
-    <div id="log" class="log" aria-live="polite"></div>
+  <section class="clock" aria-hidden="true">
+    <p id="clockTime" class="clock-time">--:--</p>
+    <p id="clockDate" class="clock-date mono"></p>
+  </section>
+
+  <main class="display">
+    <p id="stateLabel" class="state mono">Connessione</p>
+    <p id="heard" class="heard"></p>
+    <p id="reply" class="reply">Tocca il cerchio<br><em>e parla.</em></p>
+    <ol id="ticker" class="ticker mono" aria-live="polite"></ol>
   </main>
 
-  <section class="controls">
-    <div id="live" class="live"></div>
-    <button id="mic" class="mic" aria-label="Parla">
-      <span class="ring"></span>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.93V21h2v-2.07A7 7 0 0 0 19 12h-2Z"/></svg>
+  <section class="deck">
+    <button id="orbBtn" class="orb" aria-label="Parla">
+      <canvas id="orb" aria-hidden="true"></canvas>
+      <span id="orbHint" class="orb-hint mono">PARLA</span>
     </button>
-    <form id="form" class="form" autocomplete="off">
-      <input id="text" type="text" placeholder="Scrivi o detta un comando…" enterkeyhint="send">
-      <button type="submit" class="send" aria-label="Invia">↑</button>
+
+    <form id="form" class="type" autocomplete="off">
+      <input id="text" type="text" placeholder="oppure scrivi un comando" enterkeyhint="send" aria-label="Comando">
+      <button type="submit" class="go mono" aria-label="Invia">INVIO</button>
     </form>
   </section>
 
-  <div id="approval" class="sheet" hidden>
-    <div class="sheet-card">
-      <p class="sheet-title">Posso eseguire questa azione sul Mac?</p>
-      <p id="approvalName" class="sheet-name"></p>
-      <pre id="approvalDetail" class="sheet-detail"></pre>
-      <div class="sheet-buttons">
-        <button id="deny" class="btn">No</button>
-        <button id="allow" class="btn primary">Sì, esegui</button>
-      </div>
+  <!-- Conferma: si tiene premuto come un tasto fisico -->
+  <div id="approval" class="approval" hidden>
+    <p class="mono approval-kicker">Richiede conferma</p>
+    <p id="approvalName" class="approval-title"></p>
+    <pre id="approvalDetail" class="approval-detail mono"></pre>
+    <div class="approval-actions">
+      <button id="deny" class="deny mono">Annulla</button>
+      <button id="allow" class="hold" aria-label="Tieni premuto per eseguire">
+        <span class="hold-fill"></span>
+        <span class="hold-label mono">Tieni premuto per eseguire</span>
+      </button>
     </div>
+  </div>
+
+  <!-- Cronologia -->
+  <div id="history" class="history" hidden>
+    <div class="history-head">
+      <span class="mono">Cronologia</span>
+      <button id="historyClose" class="key" aria-label="Chiudi"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <ol id="log" class="log"></ol>
   </div>
 
   <script src="app.js"></script>
