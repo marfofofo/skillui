@@ -1,18 +1,18 @@
 // AI Remote — web app per l'iPhone.
-// Microfono → testo → Mac; la risposta torna sul display e viene letta ad alta voce.
+// Microfono → testo → Mac; la risposta torna in una card e viene letta ad alta voce.
 
 (() => {
   const $ = (id) => document.getElementById(id);
   const body = document.body;
-  const stateLabel = $("stateLabel");
+  const card = $("card");
   const heard = $("heard");
   const reply = $("reply");
-  const ticker = $("ticker");
+  const steps = $("steps");
+  const caption = $("caption");
   const orbBtn = $("orbBtn");
-  const orbHint = $("orbHint");
   const input = $("text");
+  const field = $("form");
   const hostLabel = $("host");
-  const speakToggle = $("speakToggle");
   const log = $("log");
 
   const store = {
@@ -34,18 +34,61 @@
   let speakEnabled = store.get("speak") !== "off";
   let exchange = null; // { user, reply, tools[] } in corso
 
-  speakToggle.setAttribute("aria-pressed", String(speakEnabled));
+  // ---------------------------------------------------------------------------
+  // Icone in stile simboli di sistema, e descrizione di ogni strumento
+
+  const ICON = {
+    app: '<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',
+    close: '<circle cx="12" cy="12" r="8.5"/><path d="M9 9l6 6M15 9l-6 6"/>',
+    globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.5 5.4 3.5 8.5s-1 5.9-3.5 8.5c-2.5-2.6-3.5-5.4-3.5-8.5s1-5.9 3.5-8.5z"/>',
+    laptop: '<rect x="5" y="5" width="14" height="10" rx="1.8"/><path d="M3 18.5h18"/>',
+    speaker: '<path d="M4 10v4h3.5L12 18V6L7.5 10H4z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>',
+    play: '<path d="M7 5.5v13l11-6.5z"/>',
+    keyboard: '<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h.01M10.5 10h.01M14 10h.01M17.5 10h.01M8 14.5h8"/>',
+    command: '<path d="M9 9V6.5A2.5 2.5 0 1 0 6.5 9H9zm0 0h6m-6 0v6m6-6V6.5A2.5 2.5 0 1 1 17.5 9H15zm0 0v6m0 0h-6m6 0v2.5a2.5 2.5 0 1 0 2.5-2.5H15zm-6 0v2.5A2.5 2.5 0 1 1 6.5 15H9z"/>',
+    viewfinder: '<path d="M4 8.5V6a2 2 0 0 1 2-2h2.5M15.5 4H18a2 2 0 0 1 2 2v2.5M20 15.5V18a2 2 0 0 1-2 2h-2.5M8.5 20H6a2 2 0 0 1-2-2v-2.5"/><circle cx="12" cy="12" r="3"/>',
+    clipboard: '<rect x="6" y="5" width="12" height="16" rx="2.5"/><path d="M9.5 3.5h5v3h-5z"/>',
+    bell: '<path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+    waveform: '<path d="M4 12h.01M7.5 9v6M11 5.5v13M14.5 8v8M18 10.5v3M21 12h.01"/>',
+    sparkles: '<path d="M11 3.5l1.6 4.4 4.4 1.6-4.4 1.6L11 15.5l-1.6-4.4L5 9.5l4.4-1.6zM18 14l.8 2.2 2.2.8-2.2.8L18 20l-.8-2.2-2.2-.8 2.2-.8z"/>',
+    terminal: '<rect x="3" y="4.5" width="18" height="15" rx="3.5"/><path d="M7 10l3 2.5L7 15M12.5 15H17"/>',
+    script: '<path d="M8 4h9a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-2"/><path d="M9 9h6M9 12.5h6M9 16h3"/>',
+    info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    warn: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/>',
+  };
+
+  const TOOLS = {
+    open_app:        { icon: "app",        title: (d) => `Apro ${d || "l'app"}` },
+    quit_app:        { icon: "close",      title: (d) => `Chiudo ${d || "l'app"}` },
+    open_url:        { icon: "globe",      title: () => "Apro il link", detail: true },
+    get_status:      { icon: "laptop",     title: () => "Controllo il Mac" },
+    set_volume:      { icon: "speaker",    title: () => "Regolo il volume" },
+    media_control:   { icon: "play",       title: () => "Controllo la musica" },
+    type_text:       { icon: "keyboard",   title: () => "Scrivo il testo", detail: true },
+    press_keys:      { icon: "command",    title: (d) => `Premo ${d}` },
+    take_screenshot: { icon: "viewfinder", title: () => "Guardo lo schermo" },
+    clipboard:       { icon: "clipboard",  title: () => "Uso gli appunti" },
+    notify:          { icon: "bell",       title: () => "Invio una notifica" },
+    speak_on_mac:    { icon: "waveform",   title: () => "Parlo dal Mac" },
+    list_shortcuts:  { icon: "sparkles",   title: () => "Cerco i Comandi Rapidi" },
+    run_shortcut:    { icon: "sparkles",   title: (d) => `Eseguo «${d}»` },
+    run_applescript: { icon: "script",     title: () => "Eseguo uno script", detail: true },
+    run_shell:       { icon: "terminal",   title: () => "Eseguo un comando", detail: true },
+  };
+
+  const svg = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`;
 
   // ---------------------------------------------------------------------------
-  // Stato del dispositivo
+  // Stato
 
-  const LABELS = {
-    offline: ["Mac non raggiungibile", "—"],
-    idle: ["Pronto", "PARLA"],
-    listening: ["In ascolto", "FINE"],
-    thinking: ["Sto lavorando", "STOP"],
-    speaking: ["Rispondo", "ZITTO"],
-    approval: ["Attendo conferma", "…"],
+  const CAPTIONS = {
+    offline: "Mac non raggiungibile",
+    idle: "Tocca per parlare",
+    listening: "Ti ascolto…",
+    thinking: "Tocca per interrompere",
+    speaking: "Tocca per zittire",
+    approval: "In attesa di conferma",
   };
 
   function currentState() {
@@ -60,41 +103,54 @@
   function render() {
     const s = currentState();
     body.dataset.state = s;
-    stateLabel.textContent = LABELS[s][0];
-    orbHint.textContent = LABELS[s][1];
+    caption.textContent = !token ? "Apri il link mostrato sul Mac" : CAPTIONS[s];
+    orbBtn.setAttribute("aria-label", CAPTIONS[s]);
     orb.setState(s);
   }
 
-  function showReply(text, { accent = false, pending = false } = {}) {
+  // ---------------------------------------------------------------------------
+  // Card
+
+  function showCard() {
+    card.hidden = false;
+    body.classList.add("has-card");
+  }
+
+  function hideCard() {
+    card.hidden = true;
+    body.classList.remove("has-card");
+  }
+
+  function setReply(text, { pending = false } = {}) {
     reply.classList.remove("enter");
-    reply.classList.toggle("pending", pending);
     void reply.offsetWidth; // riavvia l'animazione
-    reply.textContent = "";
-    if (accent) {
-      const em = document.createElement("em");
-      em.textContent = text;
-      reply.appendChild(em);
-    } else {
-      reply.textContent = text;
-    }
+    reply.classList.toggle("pending", pending);
+    reply.textContent = text;
     reply.classList.add("enter");
-    reply.scrollTop = 0;
   }
 
-  function addTick(label, detail, err = false) {
+  function settleSteps() {
+    for (const s of steps.querySelectorAll(".step-state.spin")) {
+      s.classList.remove("spin");
+      s.innerHTML = svg("check");
+    }
+  }
+
+  function addStep(name, detail, { error = false } = {}) {
+    settleSteps();
+    const meta = TOOLS[name] || { icon: "info", title: () => name.replace(/_/g, " ") };
+    const first = (detail || "").split("\n")[0].trim();
     const li = document.createElement("li");
-    if (err) li.className = "err";
-    const b = document.createElement("b");
-    b.textContent = label;
-    const span = document.createElement("span");
-    span.textContent = detail || "";
-    li.append(b, span);
-    ticker.appendChild(li);
-    while (ticker.children.length > 4) ticker.firstChild.remove();
-  }
-
-  function clearTicks() {
-    ticker.innerHTML = "";
+    if (error) li.className = "err";
+    li.innerHTML = `
+      <span class="tile">${svg(error ? "warn" : meta.icon)}</span>
+      <span class="step-text"><span class="step-title"></span><span class="step-detail"></span></span>
+      <span class="step-state${error ? "" : " spin"}"></span>`;
+    li.querySelector(".step-title").textContent = meta.title(first.length > 40 ? `${first.slice(0, 40)}…` : first);
+    if (meta.detail && first) li.querySelector(".step-detail").textContent = first;
+    steps.appendChild(li);
+    while (steps.children.length > 5) steps.firstChild.remove();
+    card.scrollTop = card.scrollHeight;
   }
 
   // ---------------------------------------------------------------------------
@@ -115,7 +171,7 @@
     if (entry.tools.length) {
       const t = document.createElement("p");
       t.className = "t";
-      t.textContent = entry.tools.join(" · ");
+      t.textContent = entry.tools.map((n) => (TOOLS[n] ? TOOLS[n].title("").replace(/\s*«?»?$/, "") : n)).join(" · ");
       li.appendChild(t);
     }
     log.querySelector(".empty")?.remove();
@@ -124,20 +180,17 @@
   }
 
   function resetHistoryView() {
-    log.innerHTML = '<li class="empty">Nessun comando ancora.</li>';
+    log.innerHTML = '<li class="empty">Nessuna richiesta</li>';
   }
   resetHistoryView();
-
-  $("historyBtn").onclick = () => ($("history").hidden = false);
-  $("historyClose").onclick = () => ($("history").hidden = true);
 
   // ---------------------------------------------------------------------------
   // Connessione
 
   function connect() {
     if (!token) {
-      hostLabel.textContent = "senza codice";
-      showReply("Apri il link mostrato nel terminale del Mac.", { accent: true });
+      hostLabel.textContent = "Non abbinato";
+      render();
       return;
     }
     if (ws && ws.readyState <= WebSocket.OPEN) return;
@@ -154,6 +207,7 @@
       if (ws !== socket) return;
       connected = false;
       busy = false;
+      hostLabel.textContent = "Non connesso";
       closeApproval();
       render();
       setTimeout(connect, retryDelay);
@@ -167,7 +221,8 @@
       ws.send(JSON.stringify(msg));
       return true;
     }
-    addTick("errore", "non connesso al Mac", true);
+    showCard();
+    setReply("Il Mac non è raggiungibile.");
     return false;
   }
 
@@ -180,13 +235,16 @@
         break;
       case "busy":
         busy = msg.busy;
+        if (!busy) settleSteps();
         render();
         break;
       case "status":
-        addTick("nota", msg.text);
+        showCard();
+        setReply(msg.text, { pending: busy });
         break;
       case "tool":
-        addTick(msg.name.replace(/_/g, " "), msg.detail ? msg.detail.split("\n")[0] : "");
+        showCard();
+        addStep(msg.name, msg.detail);
         exchange?.tools.push(msg.name);
         break;
       case "approval":
@@ -196,7 +254,8 @@
         finishExchange(msg.text);
         break;
       case "error":
-        addTick("errore", msg.text, true);
+        showCard();
+        addStep("error", msg.text, { error: true });
         finishExchange(msg.text);
         break;
     }
@@ -205,21 +264,20 @@
   function sendCommand(text) {
     text = text.trim();
     if (!text) return;
-    if (busy) {
-      addTick("attendi", "sto ancora lavorando", true);
-      return;
-    }
+    if (busy) return;
     if (!sendMsg({ type: "command", text })) return;
     exchange = { user: text, reply: "", tools: [] };
+    showCard();
     heard.textContent = text;
-    clearTicks();
-    showReply("Un attimo…", { pending: true });
+    steps.innerHTML = "";
+    setReply("Un attimo…", { pending: true });
     busy = true;
     render();
   }
 
   function finishExchange(text) {
-    showReply(text);
+    settleSteps();
+    setReply(text);
     if (exchange) {
       exchange.reply = text;
       pushHistory(exchange);
@@ -229,58 +287,128 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Conferma a pressione prolungata
+  // Foglio di conferma con "scorri per eseguire"
 
-  const allow = $("allow");
-  let holdTimer = null;
+  const sheet = $("approval");
+  const sheetScrim = $("sheetScrim");
+  const slider = $("slider");
+  const knob = slider.querySelector(".knob");
 
   function openApproval(msg) {
     pendingApprovalId = msg.id;
-    $("approvalName").textContent = msg.name === "run_shell" ? "Comando nel terminale"
-      : msg.name === "run_applescript" ? "Script AppleScript" : msg.name;
+    const titles = {
+      run_shell: "Eseguire un comando nel Terminale?",
+      run_applescript: "Eseguire uno script AppleScript?",
+    };
+    $("approvalTitle").textContent = titles[msg.name] || `Consentire «${msg.name}»?`;
     $("approvalDetail").textContent = msg.detail || "";
-    $("approval").hidden = false;
+    resetSlider(false);
+    sheet.hidden = false;
+    sheetScrim.hidden = false;
+    closeMenu();
     speak("Serve la tua conferma.");
     render();
   }
 
   function closeApproval() {
     pendingApprovalId = null;
-    $("approval").hidden = true;
-    cancelHold();
+    sheet.hidden = true;
+    sheetScrim.hidden = true;
   }
 
   function answerApproval(ok) {
-    if (pendingApprovalId) {
-      sendMsg({ type: "approval", id: pendingApprovalId, ok });
-      addTick(ok ? "confermato" : "rifiutato", "", !ok);
-    }
+    if (pendingApprovalId) sendMsg({ type: "approval", id: pendingApprovalId, ok });
     closeApproval();
     render();
   }
 
-  function startHold(e) {
-    e.preventDefault();
-    allow.classList.add("holding");
-    holdTimer = setTimeout(() => answerApproval(true), 900);
-  }
-  function cancelHold() {
-    clearTimeout(holdTimer);
-    holdTimer = null;
-    allow.classList.remove("holding");
+  let drag = null;
+  const maxX = () => slider.clientWidth - knob.offsetWidth - 10;
+
+  function setKnob(x) {
+    knob.style.transform = `translateX(${x}px)`;
+    const p = Math.round((x / maxX()) * 100);
+    slider.setAttribute("aria-valuenow", String(p));
+    slider.querySelector(".slider-text").style.opacity = String(Math.max(0, 1 - p / 60));
   }
 
-  allow.addEventListener("pointerdown", startHold);
-  allow.addEventListener("pointerup", cancelHold);
-  allow.addEventListener("pointerleave", cancelHold);
-  allow.addEventListener("pointercancel", cancelHold);
-  allow.addEventListener("contextmenu", (e) => e.preventDefault());
+  function resetSlider(animated = true) {
+    slider.classList.toggle("back", animated);
+    setKnob(0);
+  }
+
+  knob.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    knob.setPointerCapture(e.pointerId);
+    slider.classList.remove("back");
+    drag = { startX: e.clientX };
+  });
+  knob.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    setKnob(Math.max(0, Math.min(maxX(), e.clientX - drag.startX)));
+  });
+  const endDrag = (e) => {
+    if (!drag) return;
+    const x = Math.max(0, Math.min(maxX(), e.clientX - drag.startX));
+    drag = null;
+    if (x >= maxX() * 0.92) {
+      setKnob(maxX());
+      setTimeout(() => answerApproval(true), 120);
+    } else {
+      resetSlider(true);
+    }
+  };
+  knob.addEventListener("pointerup", endDrag);
+  knob.addEventListener("pointercancel", endDrag);
+  slider.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") answerApproval(true);
+  });
   $("deny").onclick = () => answerApproval(false);
+
+  // ---------------------------------------------------------------------------
+  // Menu "…"
+
+  const menu = $("menu");
+  const menuBtn = $("menuBtn");
+  const menuScrim = $("menuScrim");
+
+  function openMenu() {
+    menu.hidden = false;
+    menuScrim.hidden = false;
+    menuBtn.setAttribute("aria-expanded", "true");
+  }
+  function closeMenu() {
+    menu.hidden = true;
+    menuScrim.hidden = true;
+    menuBtn.setAttribute("aria-expanded", "false");
+  }
+  menuBtn.onclick = () => (menu.hidden ? openMenu() : closeMenu());
+  menuScrim.onclick = closeMenu;
+
+  $("historyBtn").onclick = () => {
+    closeMenu();
+    $("history").hidden = false;
+  };
+  $("historyClose").onclick = () => ($("history").hidden = true);
+
+  $("reset").onclick = () => {
+    closeMenu();
+    if (!sendMsg({ type: "reset" })) return;
+    stopSpeaking();
+    heard.textContent = "";
+    steps.innerHTML = "";
+    reply.textContent = "";
+    hideCard();
+    resetHistoryView();
+    render();
+  };
 
   // ---------------------------------------------------------------------------
   // Voce in uscita
 
   const lang = navigator.language && navigator.language.startsWith("it") ? navigator.language : "it-IT";
+  const speakSwitch = $("speakSwitch");
+  speakSwitch.checked = speakEnabled;
 
   function pickVoice() {
     const voices = speechSynthesis.getVoices().filter((v) => v.lang.replace("_", "-").startsWith(lang.slice(0, 2)));
@@ -314,10 +442,9 @@
     speechSynthesis.speak(u);
   }
 
-  speakToggle.onclick = () => {
-    speakEnabled = !speakEnabled;
+  speakSwitch.onchange = () => {
+    speakEnabled = speakSwitch.checked;
     store.set("speak", speakEnabled ? "on" : "off");
-    speakToggle.setAttribute("aria-pressed", String(speakEnabled));
     if (!speakEnabled) stopSpeaking();
     render();
   };
@@ -333,7 +460,6 @@
   function startListening() {
     if (!Recognition) {
       input.focus();
-      addTick("detta", "usa il microfono della tastiera");
       return;
     }
     stopSpeaking();
@@ -343,7 +469,6 @@
     recognition.continuous = false;
     finalText = "";
     interimText = "";
-    heard.textContent = "";
 
     recognition.onresult = (e) => {
       finalText = "";
@@ -352,14 +477,16 @@
         if (r.isFinal) finalText += r[0].transcript;
         else interimText += r[0].transcript;
       }
-      heard.textContent = finalText + interimText;
+      showCard();
+      heard.textContent = "";
+      steps.innerHTML = "";
+      setReply(finalText + interimText, { pending: true });
       orb.kick();
     };
     recognition.onerror = (e) => {
       if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-        addTick("microfono", "permesso negato: Impostazioni › Safari › Microfono", true);
-      } else if (e.error !== "no-speech" && e.error !== "aborted") {
-        addTick("microfono", e.error, true);
+        showCard();
+        setReply("Consenti l'accesso al microfono in Impostazioni › Safari › Microfono.");
       }
     };
     recognition.onend = () => {
@@ -367,7 +494,6 @@
       render();
       const text = (finalText || interimText).trim();
       if (text) sendCommand(text);
-      else heard.textContent = "";
     };
 
     try {
@@ -387,7 +513,6 @@
         break;
       case "thinking":
         sendMsg({ type: "cancel" });
-        addTick("stop", "comando annullato", true);
         break;
       case "speaking":
         stopSpeaking();
@@ -399,69 +524,52 @@
     }
   };
 
-  $("form").onsubmit = (e) => {
+  input.addEventListener("input", () => field.classList.toggle("ready", input.value.trim().length > 0));
+  field.onsubmit = (e) => {
     e.preventDefault();
     unlockSpeech();
     sendCommand(input.value);
     input.value = "";
+    field.classList.remove("ready");
     input.blur();
   };
 
-  $("reset").onclick = () => {
-    if (!sendMsg({ type: "reset" })) return;
-    stopSpeaking();
-    heard.textContent = "";
-    clearTicks();
-    resetHistoryView();
-    showReply("Nuova conversazione.", { accent: true });
-    render();
-  };
-
   // ---------------------------------------------------------------------------
-  // La sfera: un blob vivo disegnato su canvas, che cambia carattere con lo stato
+  // La sfera: colori fluidi che si muovono dentro un cerchio di vetro
 
   const orb = (() => {
     const canvas = $("orb");
     const ctx = canvas.getContext("2d");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Parametri per stato e per tema: colori, ampiezza della deformazione, velocità, scala.
-    const MOTION = {
-      offline:   { glow: 0.0,  amp: 0.015, speed: 0.25, scale: 0.78, orbit: 0 },
-      idle:      { glow: 0.35, amp: 0.035, speed: 0.5,  scale: 0.9,  orbit: 0 },
-      listening: { glow: 0.8,  amp: 0.11,  speed: 1.6,  scale: 1.0,  orbit: 0 },
-      thinking:  { glow: 0.25, amp: 0.05,  speed: 0.9,  scale: 0.86, orbit: 1 },
-      speaking:  { glow: 0.6,  amp: 0.07,  speed: 1.1,  scale: 0.95, orbit: 0 },
-      approval:  { glow: 0.7,  amp: 0.05,  speed: 0.7,  scale: 0.92, orbit: 0 },
-    };
-    const COLORS = {
-      // Almond Hearth che sfuma in Velvet Curfew, su Obsidian Ink
+    const PALETTE = {
+      // Almond Hearth, rosa velluto e Velvet Curfew su Obsidian Ink
       dark: {
-        spark: [196, 112, 134],
-        offline:   { core: [64, 56, 52],    rim: [36, 31, 29] },
-        idle:      { core: [238, 211, 186], rim: [110, 52, 66] },
-        listening: { core: [246, 224, 204], rim: [156, 74, 94] },
-        thinking:  { core: [46, 38, 36],    rim: [21, 19, 17] },
-        speaking:  { core: [242, 218, 196], rim: [124, 58, 75] },
-        approval:  { core: [250, 230, 210], rim: [200, 150, 128] },
+        base: [75, 38, 47],
+        blobs: [[255, 226, 200], [214, 128, 152], [150, 62, 88], [255, 176, 140]],
+        rim: [238, 211, 186],
       },
-      // Royal Amethyst su Steel Mist; Nox Noir quando lavora
+      // Royal Amethyst con lavanda, indaco e rosa
       light: {
-        spark: [126, 73, 179],
-        offline:   { core: [186, 186, 186], rim: [150, 150, 150] },
-        idle:      { core: [176, 130, 226], rim: [96, 50, 146] },
-        listening: { core: [192, 150, 240], rim: [126, 73, 179] },
-        thinking:  { core: [58, 58, 58],    rim: [20, 20, 20] },
-        speaking:  { core: [184, 140, 232], rim: [108, 58, 162] },
-        approval:  { core: [150, 100, 205], rim: [70, 34, 110] },
+        base: [96, 52, 150],
+        blobs: [[183, 154, 224], [91, 91, 214], [224, 138, 200], [240, 232, 255]],
+        rim: [255, 255, 255],
       },
     };
-    let theme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
-    const preset = (s) => (MOTION[s] ? { ...MOTION[s], ...COLORS[theme][s] } : preset("idle"));
 
-    const cur = structuredClone(preset("offline"));
-    let target = preset("offline");
-    let stateName = "offline";
+    // Carattere di ogni stato: dimensione, velocità, intensità dei colori, alone, saturazione.
+    const MOODS = {
+      offline:   { scale: 0.82, speed: 0.25, glow: 0.0,  intensity: 0.35, color: 0 },
+      idle:      { scale: 0.92, speed: 0.45, glow: 0.35, intensity: 0.8,  color: 1 },
+      listening: { scale: 1.06, speed: 1.4,  glow: 0.9,  intensity: 1.0,  color: 1 },
+      thinking:  { scale: 0.86, speed: 2.4,  glow: 0.45, intensity: 0.75, color: 1 },
+      speaking:  { scale: 0.98, speed: 1.0,  glow: 0.7,  intensity: 0.95, color: 1 },
+      approval:  { scale: 0.88, speed: 0.4,  glow: 0.2,  intensity: 0.5,  color: 0.6 },
+    };
+
+    let theme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    let mood = "offline";
+    const cur = { ...MOODS.offline };
     let energy = 0;
     let t = 0;
     let last = performance.now();
@@ -481,148 +589,119 @@
     resize();
 
     const lerp = (a, b, k) => a + (b - a) * k;
-    const rgb = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
-
-    function blobPath(cx, cy, r, amp, phase, seed) {
-      const N = 72;
-      ctx.beginPath();
-      for (let i = 0; i <= N; i++) {
-        const a = (i / N) * Math.PI * 2;
-        const n =
-          Math.sin(a * 3 + phase * 1.3 + seed) * 0.5 +
-          Math.sin(a * 5 - phase * 0.9 + seed * 2) * 0.3 +
-          Math.sin(a * 2 + phase * 0.6 - seed) * 0.4;
-        const rr = r * (1 + amp * n);
-        const x = cx + Math.cos(a) * rr;
-        const y = cy + Math.sin(a) * rr;
-        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
-      }
-      ctx.closePath();
-    }
+    const gray = (c, amount) => {
+      const g = c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11;
+      return c.map((v) => lerp(g, v, amount));
+    };
+    const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
 
     function frame(now) {
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
-      const k = 1 - Math.pow(0.02, dt); // avvicinamento morbido al preset
-      for (const key of ["glow", "amp", "speed", "scale", "orbit"]) cur[key] = lerp(cur[key], target[key], k);
-      for (const key of ["core", "rim"]) for (let i = 0; i < 3; i++) cur[key][i] = lerp(cur[key][i], target[key][i], k);
-      energy *= Math.pow(0.08, dt);
-      t += dt * (reduced ? 0.15 : cur.speed + energy * 2);
+      const k = 1 - Math.pow(0.015, dt);
+      const target = MOODS[mood];
+      for (const key in cur) cur[key] = lerp(cur[key], target[key], k);
+      energy *= Math.pow(0.1, dt);
+      t += dt * (reduced ? 0.1 : cur.speed + energy * 1.5);
 
+      const pal = PALETTE[theme];
       const cx = w / 2;
       const cy = h / 2;
-      const base = (Math.min(w, h) / 2) * 0.72;
-      const pulse = stateName === "speaking" ? Math.sin(t * 6) * 0.025 + Math.sin(t * 2.3) * 0.02 : 0;
-      const breathe = Math.sin(t * 1.4) * 0.012;
-      const R = base * (cur.scale + pulse + breathe + energy * 0.06);
-      const amp = cur.amp + energy * 0.08;
+      const base = Math.min(w, h) / 2 / 1.6; // il canvas è il 160% del pulsante
+      const pulse = mood === "speaking" ? Math.sin(t * 5) * 0.03 + Math.sin(t * 1.7) * 0.02 : Math.sin(t * 1.2) * 0.012;
+      const R = base * (cur.scale + pulse + energy * 0.08);
 
       ctx.clearRect(0, 0, w, h);
 
-      // Alone
+      // Alone colorato
       if (cur.glow > 0.01) {
-        const g = ctx.createRadialGradient(cx, cy, R * 0.6, cx, cy, R * 1.55);
-        g.addColorStop(0, rgb(cur.rim, 0.35 * cur.glow));
-        g.addColorStop(1, rgb(cur.rim, 0));
+        const g = ctx.createRadialGradient(cx, cy, R * 0.7, cx, cy, R * 1.65);
+        g.addColorStop(0, rgba(gray(pal.blobs[1], cur.color), 0.45 * cur.glow));
+        g.addColorStop(1, rgba(pal.blobs[1], 0));
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, w, h);
       }
 
-      // Onde di ascolto
-      if (stateName === "listening" && !reduced) {
-        for (let i = 0; i < 3; i++) {
-          const p = (t * 0.35 + i / 3) % 1;
-          ctx.beginPath();
-          ctx.arc(cx, cy, R * (1 + p * 0.5), 0, Math.PI * 2);
-          ctx.strokeStyle = rgb(cur.rim, (1 - p) * 0.45);
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-        }
-      }
+      // Corpo della sfera
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.fillStyle = rgba(gray(pal.base, cur.color), 1);
+      ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
 
-      // Strati del blob, dal più esterno al più interno
-      const layers = [
-        { s: 1.0, a: 1.0, seed: 0.0, fill: cur.rim },
-        { s: 0.9, a: 0.9, seed: 1.7, fill: cur.core },
-        { s: 0.66, a: 0.55, seed: 3.1, fill: [Math.min(255, cur.core[0] + 30), Math.min(255, cur.core[1] + 40), Math.min(255, cur.core[2] + 40)] },
-      ];
-      for (const L of layers) {
-        blobPath(cx, cy, R * L.s, amp * (1.2 - L.s * 0.4), t * (1 + L.seed * 0.15), L.seed);
-        const g = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.35, R * 0.05, cx, cy, R * L.s * 1.1);
-        g.addColorStop(0, rgb(L.fill, L.a));
-        g.addColorStop(1, rgb(cur.rim, L.a * 0.9));
+      ctx.globalCompositeOperation = "screen";
+      pal.blobs.forEach((c, i) => {
+        const p = i * 1.9;
+        const bx = cx + Math.sin(t * (0.9 + i * 0.23) + p) * R * 0.48;
+        const by = cy + Math.cos(t * (0.7 + i * 0.31) + p * 1.3) * R * 0.48;
+        const br = R * (0.62 + 0.14 * Math.sin(t * 0.8 + i));
+        const g = ctx.createRadialGradient(bx, by, 0, bx, by, br);
+        g.addColorStop(0, rgba(gray(c, cur.color), cur.intensity));
+        g.addColorStop(1, rgba(c, 0));
         ctx.fillStyle = g;
-        ctx.fill();
-      }
+        ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+      });
+      ctx.globalCompositeOperation = "source-over";
 
-      // Riflesso speculare
-      const hl = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.45, 0, cx - R * 0.35, cy - R * 0.45, R * 0.7);
-      hl.addColorStop(0, "rgba(255,255,255,.22)");
+      // Profondità: bordo più scuro e riflesso in alto, come una biglia di vetro
+      const shade = ctx.createRadialGradient(cx, cy, R * 0.55, cx, cy, R);
+      shade.addColorStop(0, "rgba(0,0,0,0)");
+      shade.addColorStop(1, "rgba(0,0,0,.16)");
+      ctx.fillStyle = shade;
+      ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+
+      const hl = ctx.createRadialGradient(cx - R * 0.25, cy - R * 0.55, 0, cx - R * 0.25, cy - R * 0.55, R * 0.75);
+      hl.addColorStop(0, "rgba(255,255,255,.35)");
       hl.addColorStop(1, "rgba(255,255,255,0)");
       ctx.fillStyle = hl;
-      ctx.beginPath();
-      ctx.arc(cx, cy, R * 0.98, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+      ctx.restore();
 
-      // Scintille in orbita mentre lavora
-      if (cur.orbit > 0.02) {
-        for (let i = 0; i < 3; i++) {
-          const a = t * (1.6 + i * 0.35) + (i * Math.PI * 2) / 3;
-          const rr = R * (1.12 + 0.06 * Math.sin(t * 2 + i));
-          const x = cx + Math.cos(a) * rr;
-          const y = cy + Math.sin(a) * rr * 0.92;
-          ctx.beginPath();
-          ctx.arc(x, y, 3.2 - i * 0.6, 0, Math.PI * 2);
-          ctx.fillStyle = rgb(COLORS[theme].spark, cur.orbit * (1 - i * 0.22));
-          ctx.shadowColor = rgb(COLORS[theme].spark, 0.9);
-          ctx.shadowBlur = 12;
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        }
-      }
+      ctx.beginPath();
+      ctx.arc(cx, cy, R - 0.5, 0, Math.PI * 2);
+      ctx.strokeStyle = rgba(pal.rim, 0.22);
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
       requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
 
     return {
-      setState(s) {
-        stateName = s;
-        target = preset(s);
-      },
-      kick() {
-        energy = Math.min(1, energy + 0.5);
-      },
-      setTheme(t) {
-        theme = t;
-        target = preset(stateName);
-      },
+      setState(s) { mood = MOODS[s] ? s : "idle"; },
+      setTheme(th) { theme = th; },
+      kick() { energy = Math.min(1, energy + 0.5); },
     };
   })();
 
   // ---------------------------------------------------------------------------
   // Tema: automatico (segue l'iPhone), chiaro o scuro
 
-  const themeToggle = $("themeToggle");
   const systemLight = matchMedia("(prefers-color-scheme: light)");
-  const THEME_NAMES = { auto: "automatico", light: "chiaro", dark: "scuro" };
+  const segButtons = [...document.querySelectorAll("[data-theme-pref]")];
+  const segThumb = document.querySelector(".seg-thumb");
   let themePref = store.get("theme") || "auto";
 
   function applyTheme() {
     const resolved = themePref === "auto" ? (systemLight.matches ? "light" : "dark") : themePref;
     document.documentElement.dataset.theme = resolved;
     $("themeColor").setAttribute("content", resolved === "light" ? "#cfcfcf" : "#151311");
-    themeToggle.dataset.mode = themePref;
-    themeToggle.setAttribute("aria-label", `Tema ${THEME_NAMES[themePref]}`);
+    segButtons.forEach((b, i) => {
+      const on = b.dataset.themePref === themePref;
+      b.setAttribute("aria-checked", String(on));
+      if (on) segThumb.style.transform = `translateX(${i * 100}%)`;
+    });
     orb.setTheme(resolved);
   }
 
-  themeToggle.onclick = () => {
-    themePref = { auto: "light", light: "dark", dark: "auto" }[themePref];
-    store.set("theme", themePref);
-    applyTheme();
-    addTick("tema", THEME_NAMES[themePref]);
-  };
+  segButtons.forEach((b) => {
+    b.onclick = () => {
+      themePref = b.dataset.themePref;
+      store.set("theme", themePref);
+      applyTheme();
+    };
+  });
   systemLight.addEventListener("change", applyTheme);
   applyTheme();
 

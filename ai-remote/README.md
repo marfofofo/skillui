@@ -67,9 +67,11 @@ Al primo utilizzo macOS chiede alcune autorizzazioni per il Terminale (o per `no
 
 > Se il riconoscimento vocale di Safari non funziona sul tuo iOS, usa il tasto 🎤 della tastiera nel campo di testo: la dettatura di iOS funziona sempre.
 
-## Temi
+## Design
 
-Due temi, scelti col tasto ◐ in alto: **automatico** (segue chiaro/scuro dell'iPhone), **chiaro**, **scuro**.
+L'app segue il linguaggio visivo dei sistemi Apple: font di sistema (SF Pro su iPhone), orologio grande in stile Blocco schermo, sfera fluida con bagliore sui bordi dello schermo mentre ascolta, risposte in card di vetro con le azioni come righe con icona, menu «…» con controllo segmentato e interruttore, e un foglio di conferma con **scorri per eseguire**.
+
+Tema scelto dal menu «…» → Aspetto: **Auto** (segue l'iPhone), **Chiaro**, **Scuro**.
 
 - **Scuro**: Obsidian Ink `#151311` · Velvet Curfew `#4B262F` · Almond Hearth `#EED3BA`
 - **Chiaro**: Steel Mist `#CFCFCF` · Nox Noir `#141414` · Royal Amethyst `#7E49B3`
