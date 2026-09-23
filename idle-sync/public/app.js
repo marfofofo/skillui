@@ -909,18 +909,17 @@
     const ctx = canvas.getContext("2d");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+    // Monocromatica: una perla d'argento sul nero, una perla di grafite sul bianco.
     const PALETTE = {
-      // Almond Hearth, rosa velluto e Velvet Curfew su Obsidian Ink
       dark: {
-        base: [75, 38, 47],
-        blobs: [[255, 226, 200], [214, 128, 152], [150, 62, 88], [255, 176, 140]],
-        rim: [238, 211, 186],
-      },
-      // Royal Amethyst con lavanda, indaco e rosa
-      light: {
-        base: [96, 52, 150],
-        blobs: [[183, 154, 224], [91, 91, 214], [224, 138, 200], [240, 232, 255]],
+        base: [28, 28, 28],
+        blobs: [[255, 255, 255], [140, 140, 140], [70, 70, 70], [210, 210, 210]],
         rim: [255, 255, 255],
+      },
+      light: {
+        base: [14, 14, 14],
+        blobs: [[150, 150, 150], [60, 60, 60], [225, 225, 225], [100, 100, 100]],
+        rim: [0, 0, 0],
       },
     };
 
@@ -1050,7 +1049,7 @@
   function applyTheme() {
     const resolved = local.theme === "auto" ? (systemLight.matches ? "light" : "dark") : local.theme;
     document.documentElement.dataset.theme = resolved;
-    $("themeColor").setAttribute("content", resolved === "light" ? "#cfcfcf" : "#151311");
+    $("themeColor").setAttribute("content", resolved === "light" ? "#f5f5f5" : "#000000");
     setSegmented($("themeSeg"), local.theme);
     orb.setTheme(resolved);
   }
@@ -1064,17 +1063,6 @@
   });
   systemLight.addEventListener("change", applyTheme);
   applyTheme();
-
-  // ---------------------------------------------------------------------------
-  // Orologio
-
-  function tickClock() {
-    const now = new Date();
-    $("clockTime").textContent = now.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
-    $("clockDate").textContent = now.toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long" });
-  }
-  tickClock();
-  setInterval(tickClock, 10000);
 
   // ---------------------------------------------------------------------------
   // Schermo sempre acceso e riconnessione al risveglio

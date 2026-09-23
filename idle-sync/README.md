@@ -76,10 +76,12 @@ Al primo utilizzo macOS chiede alcune autorizzazioni per il Terminale (o per `no
 
 ## Design
 
-Linguaggio visivo dei sistemi Apple: SF Pro, orologio da Blocco schermo, widget stile StandBy, sfera fluida con bordi luminosi mentre ascolta, card di vetro, fogli e menu nativi, **scorri per eseguire** per le conferme.
+Minimal, in bianco e nero, con il linguaggio visivo dei sistemi Apple: SF Pro, logo IDLE SYNC al centro (due cerchi che si sincronizzano mentre lavora), widget stile StandBy, sfera fluida monocromatica con bordi luminosi mentre ascolta, card di vetro, fogli e menu nativi, **scorri per eseguire** per le conferme.
 
-- **Scuro**: Obsidian Ink `#151311` · Velvet Curfew `#4B262F` · Almond Hearth `#EED3BA`
-- **Chiaro**: Steel Mist `#CFCFCF` · Nox Noir `#141414` · Royal Amethyst `#7E49B3`
+- **Scuro**: nero `#000000`, testo `#F5F5F5`
+- **Chiaro**: bianco `#F5F5F5` / `#FFFFFF`, testo `#0A0A0A`
+
+L'unico colore è funzionale: verde/rosso per lo stato della connessione e rosso per le azioni distruttive.
 
 ## Farlo diventare un "oggetto" dedicato
 

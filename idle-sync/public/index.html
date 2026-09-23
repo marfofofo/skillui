@@ -7,7 +7,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="IDLE SYNC">
-  <meta name="theme-color" content="#151311" id="themeColor">
+  <meta name="theme-color" content="#000000" id="themeColor">
   <script>
     // Applica il tema prima del primo disegno, per evitare lampi di colore.
     (function () {
@@ -40,9 +40,9 @@
     </button>
   </header>
 
-  <section class="clock" aria-hidden="true">
-    <p id="clockDate" class="clock-date"></p>
-    <p id="clockTime" class="clock-time">--:--</p>
+  <section class="brand" aria-label="IDLE SYNC">
+    <svg class="mark" viewBox="0 0 48 32" aria-hidden="true"><circle cx="16" cy="16" r="11.5" class="mark-fill"/><circle cx="32" cy="16" r="11.5" class="mark-ring"/></svg>
+    <p class="wordmark">IDLE SYNC</p>
   </section>
 
   <main class="stage">

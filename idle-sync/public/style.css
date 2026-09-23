@@ -1,8 +1,6 @@
-/* IDLE SYNC — linguaggio visivo dei sistemi Apple:
-   font di sistema, materiali traslucidi, orologio da Blocco schermo,
-   sfera fluida, bordi luminosi, fogli e menu nativi.
-   Palette: scuro = Obsidian Ink · Velvet Curfew · Almond Hearth
-            chiaro = Steel Mist · Nox Noir · Royal Amethyst */
+/* IDLE SYNC — linguaggio visivo dei sistemi Apple, in bianco e nero:
+   font di sistema, materiali traslucidi, logo al centro,
+   sfera fluida, bordi luminosi, fogli e menu nativi. */
 
 @property --a {
   syntax: "<angle>";
@@ -11,33 +9,34 @@
 }
 
 :root {
-  --bg: #151311;
-  --glow-a: rgba(75, 38, 47, .55);
-  --glow-b: rgba(238, 211, 186, .05);
-  --label: #eed3ba;
-  --label-2: rgba(238, 211, 186, .62);
-  --label-3: rgba(238, 211, 186, .34);
-  --hairline: rgba(238, 211, 186, .10);
-  --fill: rgba(238, 211, 186, .09);
-  --fill-2: rgba(238, 211, 186, .16);
-  --mat: rgba(36, 30, 28, .58);
-  --mat-thick: rgba(40, 34, 31, .93);
-  --tint: #eed3ba;
-  --on-tint: #151311;
-  --accent: #d08c9e;
-  --tile: #4b262f;
-  --on-tile: #eed3ba;
-  --code-bg: rgba(0, 0, 0, .32);
-  --cell: #1f1b19;
-  --knob: #eed3ba;
-  --knob-glyph: #4b262f;
+  /* Scuro: nero puro, testo bianco, nessun colore d'accento */
+  --bg: #000000;
+  --glow-a: transparent;
+  --glow-b: transparent;
+  --label: #f5f5f5;
+  --label-2: rgba(245, 245, 245, .58);
+  --label-3: rgba(245, 245, 245, .30);
+  --hairline: rgba(255, 255, 255, .10);
+  --fill: rgba(255, 255, 255, .07);
+  --fill-2: rgba(255, 255, 255, .13);
+  --mat: rgba(24, 24, 24, .72);
+  --mat-thick: rgba(26, 26, 26, .95);
+  --tint: #f5f5f5;
+  --on-tint: #000000;
+  --accent: #f5f5f5;
+  --tile: #1f1f1f;
+  --on-tile: #f5f5f5;
+  --code-bg: #0c0c0c;
+  --cell: #111111;
+  --knob: #f5f5f5;
+  --knob-glyph: #000000;
   --dot-on: #30d158;
   --dot-off: #ff453a;
-  --scrim: rgba(0, 0, 0, .45);
-  --e1: #eed3ba;
-  --e2: #d08c9e;
-  --e3: #7a3a4b;
-  --e4: #f2b8a0;
+  --scrim: rgba(0, 0, 0, .55);
+  --e1: #ffffff;
+  --e2: #8c8c8c;
+  --e3: #3a3a3a;
+  --e4: #d0d0d0;
 
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
@@ -48,34 +47,35 @@
   color-scheme: dark;
 }
 
+/* Chiaro: bianco, testo nero, nessun colore d'accento */
 :root[data-theme="light"] {
-  --bg: #cfcfcf;
-  --glow-a: rgba(126, 73, 179, .16);
-  --glow-b: rgba(255, 255, 255, .45);
-  --label: #141414;
-  --label-2: rgba(20, 20, 20, .58);
-  --label-3: rgba(20, 20, 20, .30);
-  --hairline: rgba(20, 20, 20, .10);
-  --fill: rgba(20, 20, 20, .06);
-  --fill-2: rgba(20, 20, 20, .11);
-  --mat: rgba(242, 242, 242, .58);
-  --mat-thick: rgba(238, 238, 238, .88);
-  --tint: #7e49b3;
+  --bg: #f5f5f5;
+  --glow-a: transparent;
+  --glow-b: transparent;
+  --label: #0a0a0a;
+  --label-2: rgba(10, 10, 10, .55);
+  --label-3: rgba(10, 10, 10, .28);
+  --hairline: rgba(0, 0, 0, .09);
+  --fill: rgba(0, 0, 0, .05);
+  --fill-2: rgba(0, 0, 0, .10);
+  --mat: rgba(255, 255, 255, .78);
+  --mat-thick: rgba(255, 255, 255, .96);
+  --tint: #0a0a0a;
   --on-tint: #ffffff;
-  --accent: #7e49b3;
-  --tile: #7e49b3;
+  --accent: #0a0a0a;
+  --tile: #0a0a0a;
   --on-tile: #ffffff;
-  --code-bg: rgba(20, 20, 20, .06);
-  --cell: #e4e4e4;
-  --knob: #ffffff;
-  --knob-glyph: #7e49b3;
+  --code-bg: #f2f2f2;
+  --cell: #ffffff;
+  --knob: #0a0a0a;
+  --knob-glyph: #ffffff;
   --dot-on: #28a745;
   --dot-off: #e5372c;
-  --scrim: rgba(20, 20, 20, .22);
-  --e1: #7e49b3;
-  --e2: #b79ae0;
-  --e3: #5b5bd6;
-  --e4: #e08ac8;
+  --scrim: rgba(0, 0, 0, .18);
+  --e1: #000000;
+  --e2: #7a7a7a;
+  --e3: #c4c4c4;
+  --e4: #3c3c3c;
   color-scheme: light;
 }
 
@@ -191,39 +191,39 @@ body[data-state="offline"] .dot { animation: pulse 1.6s ease-in-out infinite; }
 .round:active { transform: scale(.9); opacity: .7; }
 .round svg { width: 20px; height: 20px; }
 
-/* ---------- Orologio da Blocco schermo ---------- */
+/* ---------- Logo ---------- */
 
-.clock {
-  text-align: center;
-  padding-top: 6px;
-  transition: opacity .5s ease;
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding-top: 28px;
+  color: var(--label);
+  transition: opacity .5s ease, gap .6s var(--spring), padding .6s var(--spring);
   animation: enter .8s .05s var(--spring) backwards;
 }
-.clock-date {
+.mark { width: 72px; height: 48px; overflow: visible; transition: width .6s var(--spring), height .6s var(--spring); }
+.mark-fill { fill: currentColor; stroke: none; }
+.mark-ring { fill: none; stroke: currentColor; stroke-width: 2.5; }
+.wordmark {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 600;
-  letter-spacing: .1px;
-  color: var(--label-2);
+  letter-spacing: .32em;
+  padding-left: .32em; /* compensa la spaziatura dopo l'ultima lettera */
   transition: font-size .6s var(--spring);
 }
-.clock-date::first-letter { text-transform: uppercase; }
-.clock-time {
-  margin: -4px 0 0;
-  font-family: var(--font-rounded);
-  font-size: clamp(84px, 27vw, 112px);
-  font-weight: 600;
-  line-height: 1.02;
-  letter-spacing: -3px;
-  font-variant-numeric: tabular-nums;
-  color: var(--label);
-  transition: font-size .6s var(--spring);
-}
-body.has-card .clock-time { font-size: clamp(54px, 17vw, 68px); letter-spacing: -2px; }
-body.has-card .clock-date { font-size: 15px; }
-body[data-state="listening"] .clock,
-body[data-state="thinking"] .clock { opacity: .4; }
+body.has-card .brand { gap: 8px; padding-top: 6px; }
+body.has-card .mark { width: 42px; height: 28px; }
+body.has-card .wordmark { font-size: 11px; }
+body[data-state="listening"] .brand,
+body[data-state="thinking"] .brand { opacity: .4; }
+
+/* Il cerchio pieno "si sincronizza" con quello vuoto mentre lavora */
+body[data-state="thinking"] .mark-fill { animation: sync 1.4s var(--spring) infinite alternate; }
+@keyframes sync { to { transform: translateX(16px); } }
 
 /* ---------- Card della risposta ---------- */
 
@@ -341,12 +341,12 @@ body.has-card .widgets { display: none; }
   border-radius: 12px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--e2), var(--e3));
-  color: #fff;
+  background: var(--tile);
+  color: var(--on-tile);
   box-shadow: 0 6px 16px rgba(0, 0, 0, .18);
 }
 .art svg { width: 26px; height: 26px; stroke-width: 1.8; }
-.art.app { background: linear-gradient(135deg, var(--tile), var(--e3)); color: var(--on-tile); }
+
 .np-text { flex: 1; min-width: 0; }
 .np-title { margin: 2px 0 0; font-size: 17px; font-weight: 600; letter-spacing: -.41px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .np-artist { margin: 0; font-size: 15px; color: var(--label-2); letter-spacing: -.24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -362,7 +362,7 @@ body.has-card .widgets { display: none; }
 .ring { width: 44px; height: 44px; flex-shrink: 0; transform: rotate(-90deg); }
 .ring circle { fill: none; stroke-width: 5; }
 .ring-track { stroke: var(--fill-2); }
-.ring-fill { stroke: var(--dot-on); stroke-linecap: round; stroke-dasharray: 113.1; stroke-dashoffset: 113.1; transition: stroke-dashoffset .8s var(--spring), stroke .3s; }
+.ring-fill { stroke: var(--label); stroke-linecap: round; stroke-dasharray: 113.1; stroke-dashoffset: 113.1; transition: stroke-dashoffset .8s var(--spring), stroke .3s; }
 #wBattery.low .ring-fill { stroke: var(--dot-off); }
 
 #wVolume { flex-direction: column; align-items: stretch; gap: 10px; }
@@ -685,7 +685,8 @@ body[data-state="listening"] .caption { color: var(--label); }
   box-shadow: 0 3px 8px rgba(0, 0, 0, .12), 0 0 0 .5px rgba(0, 0, 0, .04);
   transition: transform .35s var(--spring);
 }
-:root[data-theme="light"] .seg-thumb { background: #fff; }
+:root[data-theme="light"] .seg-thumb { background: #fff; box-shadow: 0 3px 8px rgba(0, 0, 0, .10), 0 0 0 .5px rgba(0, 0, 0, .06); }
+:root:not([data-theme="light"]) .seg-thumb { background: #2c2c2c; }
 
 .switch {
   -webkit-appearance: none;
@@ -712,7 +713,8 @@ body[data-state="listening"] .caption { color: var(--label); }
   box-shadow: 0 3px 8px rgba(0, 0, 0, .15), 0 3px 1px rgba(0, 0, 0, .06);
   transition: transform .3s var(--spring);
 }
-.switch:checked { background: var(--dot-on); }
+.switch:checked { background: var(--tint); }
+.switch:checked::after { background: var(--on-tint); }
 .switch:checked::after { transform: translateX(20px); }
 
 /* ---------- Foglio di conferma ---------- */
@@ -841,9 +843,8 @@ body[data-state="listening"] .caption { color: var(--label); }
 
 /* Schermi bassi (iPhone SE / 8) */
 @media (max-height: 700px) {
-  .clock-time { font-size: 72px; }
-  body.has-card .clock { display: none; }
-  .clock-date { font-size: 16px; }
+  body.has-card .brand { display: none; }
+  .brand { padding-top: 10px; }
   .widget-row { display: none; }
   .orb { width: 108px; height: 108px; }
   .caption { margin: 8px 0 10px; }
