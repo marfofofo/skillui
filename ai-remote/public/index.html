@@ -7,7 +7,16 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AI Remote">
-  <meta name="theme-color" content="#0e0d0c">
+  <meta name="theme-color" content="#151311" id="themeColor">
+  <script>
+    // Applica il tema prima del primo disegno, per evitare lampi di colore.
+    (function () {
+      var pref = "auto";
+      try { pref = localStorage.getItem("theme") || "auto"; } catch (e) {}
+      var light = pref === "light" || (pref === "auto" && matchMedia("(prefers-color-scheme: light)").matches);
+      document.documentElement.dataset.theme = light ? "light" : "dark";
+    })();
+  </script>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,6 +37,13 @@
     <nav class="keys">
       <button id="historyBtn" class="key" aria-label="Cronologia">
         <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+      </button>
+      <button id="themeToggle" class="key" aria-label="Tema" data-mode="auto">
+        <svg viewBox="0 0 24 24">
+          <g class="t-auto"><circle cx="12" cy="12" r="7.5"/><path class="fill" d="M12 4.5a7.5 7.5 0 0 1 0 15z"/></g>
+          <g class="t-light"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></g>
+          <g class="t-dark"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/></g>
+        </svg>
       </button>
       <button id="speakToggle" class="key" aria-label="Voce" aria-pressed="true">
         <svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10H4z"/><path class="wave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="mute" d="M16 9l6 6M22 9l-6 6"/></svg>

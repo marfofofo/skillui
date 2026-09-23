@@ -425,18 +425,42 @@
     const ctx = canvas.getContext("2d");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Parametri per stato: colori, ampiezza della deformazione, velocità, scala.
-    const PRESETS = {
-      offline:   { core: [74, 69, 64],   rim: [40, 37, 34],   glow: 0.0,  amp: 0.015, speed: 0.25, scale: 0.78, orbit: 0 },
-      idle:      { core: [255, 128, 72], rim: [214, 58, 12],  glow: 0.35, amp: 0.035, speed: 0.5,  scale: 0.9,  orbit: 0 },
-      listening: { core: [255, 150, 96], rim: [255, 72, 20],  glow: 0.8,  amp: 0.11,  speed: 1.6,  scale: 1.0,  orbit: 0 },
-      thinking:  { core: [44, 40, 37],   rim: [24, 22, 20],   glow: 0.25, amp: 0.05,  speed: 0.9,  scale: 0.86, orbit: 1 },
-      speaking:  { core: [255, 170, 120],rim: [230, 70, 20],  glow: 0.6,  amp: 0.07,  speed: 1.1,  scale: 0.95, orbit: 0 },
-      approval:  { core: [255, 196, 90], rim: [230, 140, 10], glow: 0.7,  amp: 0.05,  speed: 0.7,  scale: 0.92, orbit: 0 },
+    // Parametri per stato e per tema: colori, ampiezza della deformazione, velocità, scala.
+    const MOTION = {
+      offline:   { glow: 0.0,  amp: 0.015, speed: 0.25, scale: 0.78, orbit: 0 },
+      idle:      { glow: 0.35, amp: 0.035, speed: 0.5,  scale: 0.9,  orbit: 0 },
+      listening: { glow: 0.8,  amp: 0.11,  speed: 1.6,  scale: 1.0,  orbit: 0 },
+      thinking:  { glow: 0.25, amp: 0.05,  speed: 0.9,  scale: 0.86, orbit: 1 },
+      speaking:  { glow: 0.6,  amp: 0.07,  speed: 1.1,  scale: 0.95, orbit: 0 },
+      approval:  { glow: 0.7,  amp: 0.05,  speed: 0.7,  scale: 0.92, orbit: 0 },
     };
+    const COLORS = {
+      // Almond Hearth che sfuma in Velvet Curfew, su Obsidian Ink
+      dark: {
+        spark: [196, 112, 134],
+        offline:   { core: [64, 56, 52],    rim: [36, 31, 29] },
+        idle:      { core: [238, 211, 186], rim: [110, 52, 66] },
+        listening: { core: [246, 224, 204], rim: [156, 74, 94] },
+        thinking:  { core: [46, 38, 36],    rim: [21, 19, 17] },
+        speaking:  { core: [242, 218, 196], rim: [124, 58, 75] },
+        approval:  { core: [250, 230, 210], rim: [200, 150, 128] },
+      },
+      // Royal Amethyst su Steel Mist; Nox Noir quando lavora
+      light: {
+        spark: [126, 73, 179],
+        offline:   { core: [186, 186, 186], rim: [150, 150, 150] },
+        idle:      { core: [176, 130, 226], rim: [96, 50, 146] },
+        listening: { core: [192, 150, 240], rim: [126, 73, 179] },
+        thinking:  { core: [58, 58, 58],    rim: [20, 20, 20] },
+        speaking:  { core: [184, 140, 232], rim: [108, 58, 162] },
+        approval:  { core: [150, 100, 205], rim: [70, 34, 110] },
+      },
+    };
+    let theme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    const preset = (s) => (MOTION[s] ? { ...MOTION[s], ...COLORS[theme][s] } : preset("idle"));
 
-    const cur = structuredClone(PRESETS.offline);
-    let target = PRESETS.offline;
+    const cur = structuredClone(preset("offline"));
+    let target = preset("offline");
     let stateName = "offline";
     let energy = 0;
     let t = 0;
@@ -549,8 +573,8 @@
           const y = cy + Math.sin(a) * rr * 0.92;
           ctx.beginPath();
           ctx.arc(x, y, 3.2 - i * 0.6, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255,91,31,${cur.orbit * (1 - i * 0.22)})`;
-          ctx.shadowColor = "rgba(255,91,31,.9)";
+          ctx.fillStyle = rgb(COLORS[theme].spark, cur.orbit * (1 - i * 0.22));
+          ctx.shadowColor = rgb(COLORS[theme].spark, 0.9);
           ctx.shadowBlur = 12;
           ctx.fill();
           ctx.shadowBlur = 0;
@@ -564,13 +588,43 @@
     return {
       setState(s) {
         stateName = s;
-        target = PRESETS[s] || PRESETS.idle;
+        target = preset(s);
       },
       kick() {
         energy = Math.min(1, energy + 0.5);
       },
+      setTheme(t) {
+        theme = t;
+        target = preset(stateName);
+      },
     };
   })();
+
+  // ---------------------------------------------------------------------------
+  // Tema: automatico (segue l'iPhone), chiaro o scuro
+
+  const themeToggle = $("themeToggle");
+  const systemLight = matchMedia("(prefers-color-scheme: light)");
+  const THEME_NAMES = { auto: "automatico", light: "chiaro", dark: "scuro" };
+  let themePref = store.get("theme") || "auto";
+
+  function applyTheme() {
+    const resolved = themePref === "auto" ? (systemLight.matches ? "light" : "dark") : themePref;
+    document.documentElement.dataset.theme = resolved;
+    $("themeColor").setAttribute("content", resolved === "light" ? "#cfcfcf" : "#151311");
+    themeToggle.dataset.mode = themePref;
+    themeToggle.setAttribute("aria-label", `Tema ${THEME_NAMES[themePref]}`);
+    orb.setTheme(resolved);
+  }
+
+  themeToggle.onclick = () => {
+    themePref = { auto: "light", light: "dark", dark: "auto" }[themePref];
+    store.set("theme", themePref);
+    applyTheme();
+    addTick("tema", THEME_NAMES[themePref]);
+  };
+  systemLight.addEventListener("change", applyTheme);
+  applyTheme();
 
   // ---------------------------------------------------------------------------
   // Orologio

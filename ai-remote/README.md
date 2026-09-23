@@ -67,6 +67,13 @@ Al primo utilizzo macOS chiede alcune autorizzazioni per il Terminale (o per `no
 
 > Se il riconoscimento vocale di Safari non funziona sul tuo iOS, usa il tasto 🎤 della tastiera nel campo di testo: la dettatura di iOS funziona sempre.
 
+## Temi
+
+Due temi, scelti col tasto ◐ in alto: **automatico** (segue chiaro/scuro dell'iPhone), **chiaro**, **scuro**.
+
+- **Scuro**: Obsidian Ink `#151311` · Velvet Curfew `#4B262F` · Almond Hearth `#EED3BA`
+- **Chiaro**: Steel Mist `#CFCFCF` · Nox Noir `#141414` · Royal Amethyst `#7E49B3`
+
 ## Farlo diventare un "oggetto" dedicato
 
 - **Accesso Guidato** (Impostazioni → Accessibilità → Accesso Guidato): blocca l'iPhone dentro AI Remote, così diventa un telecomando e basta. Triplo clic sul tasto laterale per attivarlo.
