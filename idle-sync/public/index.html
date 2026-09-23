@@ -177,14 +177,17 @@
           <img src="icon.svg" alt="" class="hero-icon">
           <div>
             <p class="hero-title">IDLE SYNC</p>
-            <p id="heroSub" class="hero-sub">Versione 2.0</p>
+            <p id="heroSub" class="hero-sub"></p>
           </div>
         </div>
       </div>
 
-      <p class="group-header">Dispositivi collegati</p>
-      <div id="deviceList" class="group"></div>
-      <p class="group-footer">Tutti i dispositivi vedono la stessa conversazione e possono confermare i comandi.</p>
+      <p class="group-header">Dispositivi abbinati</p>
+      <div class="group">
+        <div id="deviceList"></div>
+        <button id="pairNew" class="cell tint-row"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>Abbina un nuovo dispositivo</button>
+      </div>
+      <p class="group-footer">Tutti i dispositivi abbinati vedono la stessa conversazione e possono confermare i comandi.</p>
 
       <p class="group-header">Questo dispositivo</p>
       <div class="group">
@@ -268,12 +271,42 @@
       <p class="group-header">Dati</p>
       <div class="group">
         <button id="clearHistory" class="cell destructive">Cancella cronologia</button>
+        <button id="unpairSelf" class="cell destructive">Scollega questo dispositivo</button>
       </div>
 
-      <p class="page-footer">IDLE SYNC 2.0 · nata da IDLE SOCIAL</p>
+      <p class="page-footer">IDLE SYNC · nata da IDLE SOCIAL</p>
     </div>
   </section>
 
-  <script src="app.js"></script>
+  <!-- Foglio con QR e codice per abbinare un nuovo dispositivo -->
+  <div id="pairSheetScrim" class="scrim over-page" hidden></div>
+  <section id="pairSheet" class="sheet material-thick over-page" role="dialog" aria-modal="true" aria-labelledby="pairSheetTitle" hidden>
+    <span class="grabber" aria-hidden="true"></span>
+    <h2 id="pairSheetTitle" class="sheet-title">Abbina un dispositivo</h2>
+    <p class="sheet-sub">Inquadra il QR con la Fotocamera, oppure apri l'indirizzo in Safari e inserisci il codice.</p>
+    <div id="pairQr" class="qr"></div>
+    <p id="pairCodeBig" class="pair-code"></p>
+    <p id="pairUrl" class="pair-url"></p>
+    <p id="pairExpiry" class="pair-expiry"></p>
+    <button id="pairSheetDone" class="text-btn strong">Fine</button>
+  </section>
+
+  <!-- Schermata di abbinamento per i dispositivi nuovi -->
+  <section id="pairing" class="page pairing" hidden>
+    <form id="pairForm" class="pair-form" autocomplete="off">
+      <svg class="mark big" viewBox="0 0 48 32" aria-hidden="true"><circle cx="16" cy="16" r="11.5" class="mark-fill"/><circle cx="32" cy="16" r="11.5" class="mark-ring"/></svg>
+      <h1 class="pair-title">Abbina questo dispositivo</h1>
+      <p class="pair-sub">Inserisci il codice a 6 cifre mostrato nel terminale del Mac o nelle Opzioni di un dispositivo già abbinato.</p>
+      <input id="pairCode" class="code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="Codice di abbinamento">
+      <label class="pair-name">
+        <span>Nome del dispositivo</span>
+        <input id="pairName" type="text" maxlength="40" enterkeyhint="go">
+      </label>
+      <p id="pairError" class="pair-error" role="alert"></p>
+      <button type="submit" class="primary-btn">Abbina</button>
+    </form>
+  </section>
+
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

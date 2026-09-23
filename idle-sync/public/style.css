@@ -542,6 +542,66 @@ body[data-state="thinking"] .chip, body[data-state="offline"] .chip { opacity: .
 
 .pill-count { color: var(--label-3); font-weight: 500; }
 
+/* ---------- Dispositivi e abbinamento ---------- */
+
+#deviceList .cell + .cell { box-shadow: inset 0 .5px 0 var(--hairline); }
+#deviceList:not(:empty) + .cell { box-shadow: inset 0 .5px 0 var(--hairline); }
+.dev-text { flex: 1; min-width: 0; }
+.dev-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dev-sub { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--label-2); letter-spacing: -.08px; }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dot-on); }
+.text-btn.danger { margin: 0; padding: 6px 0 6px 10px; font-size: 15px; color: var(--dot-off); }
+.history-list .meta.tools { margin: 8px 0 0; }
+
+.sheet.over-page, .scrim.over-page { z-index: 60; }
+.qr { width: 196px; height: 196px; margin: 4px auto 14px; padding: 10px; border-radius: 18px; background: #fff; }
+.qr svg { display: block; width: 100%; height: 100%; stroke-width: 1; stroke-linecap: butt; stroke-linejoin: miter; }
+.pair-code { margin: 0; font-family: var(--font-rounded); font-size: 40px; font-weight: 600; letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+.pair-url { margin: 4px 0 0; font-size: 13px; color: var(--label-2); letter-spacing: 0; word-break: break-all; }
+.pair-expiry { margin: 4px 0 6px; font-size: 13px; color: var(--label-3); letter-spacing: -.08px; min-height: 18px; }
+
+.pairing { z-index: 65; justify-content: center; }
+.pair-form { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; max-width: 380px; margin: 0 auto; }
+.mark.big { width: 84px; height: 56px; margin-bottom: 22px; color: var(--label); }
+.pair-title { margin: 0 0 8px; font-family: var(--font-display); font-size: 28px; font-weight: 700; letter-spacing: .36px; }
+.pair-sub { margin: 0 0 26px; font-size: 15px; line-height: 1.4; color: var(--label-2); letter-spacing: -.24px; }
+.code-input {
+  width: 100%;
+  height: 72px;
+  border: none;
+  outline: none;
+  border-radius: 18px;
+  background: var(--cell);
+  color: var(--label);
+  text-align: center;
+  font-family: var(--font-rounded);
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: .3em;
+  padding-left: .3em;
+  font-variant-numeric: tabular-nums;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.code-input::placeholder { color: var(--label-3); }
+.pair-name { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; padding: 0 16px; height: 48px; border-radius: 14px; background: var(--cell); font-size: 17px; }
+.pair-name span { color: var(--label-2); white-space: nowrap; font-size: 15px; }
+.pair-name input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; color: var(--label); font: inherit; text-align: right; -webkit-user-select: text; user-select: text; }
+.pair-error { min-height: 22px; margin: 12px 0 6px; font-size: 15px; color: var(--dot-off); }
+.primary-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--tint);
+  color: var(--on-tint);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -.41px;
+  transition: opacity .2s, transform .2s var(--spring);
+}
+.primary-btn:active { transform: scale(.98); opacity: .8; }
+.primary-btn:disabled { opacity: .4; }
+
 /* ---------- Dock: sfera, didascalia, campo di testo ---------- */
 
 .dock {
@@ -849,3 +909,4 @@ body[data-state="listening"] .caption { color: var(--label); }
   .orb { width: 108px; height: 108px; }
   .caption { margin: 8px 0 10px; }
 }
+.sheet .text-btn.strong { margin: 10px auto 0; }

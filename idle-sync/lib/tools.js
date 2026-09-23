@@ -1,57 +1,12 @@
 // Strumenti che Claude può usare per controllare il Mac.
 // Ogni strumento ha una definizione (quella che vede il modello) e un'implementazione.
-// Quelli con `needsApproval` vengono confermati dall'utente sull'iPhone prima di partire.
+// Quelli con `needsApproval` vanno confermati da uno dei dispositivi abbinati prima di partire.
+// Li usano entrambi i motori: Claude Code (via MCP) e l'API diretta.
 
-import { spawn } from "node:child_process";
 import { readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-
-const MAX_OUTPUT = 8000;
-
-function run(cmd, args = [], { input, timeout = 30_000 } = {}) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { stdio: ["pipe", "pipe", "pipe"] });
-    let stdout = "";
-    let stderr = "";
-    const timer = setTimeout(() => {
-      child.kill("SIGKILL");
-      reject(new Error(`Timeout dopo ${timeout / 1000}s`));
-    }, timeout);
-    child.stdout.on("data", (d) => (stdout += d));
-    child.stderr.on("data", (d) => (stderr += d));
-    child.on("error", (err) => {
-      clearTimeout(timer);
-      reject(err);
-    });
-    child.on("close", (code) => {
-      clearTimeout(timer);
-      resolve({ code, stdout: stdout.trim(), stderr: stderr.trim() });
-    });
-    child.stdin.end(input ?? "");
-  });
-}
-
-function clip(text) {
-  return text.length > MAX_OUTPUT ? `${text.slice(0, MAX_OUTPUT)}\n…[troncato]` : text;
-}
-
-function formatResult({ code, stdout, stderr }) {
-  const parts = [];
-  if (stdout) parts.push(stdout);
-  if (stderr) parts.push(`stderr: ${stderr}`);
-  if (code !== 0) parts.push(`exit code: ${code}`);
-  return clip(parts.join("\n") || "OK");
-}
-
-// Esegue AppleScript passando i valori come argv, così il testo dell'utente
-// non viene mai interpolato dentro lo script.
-async function osascript(lines, args = []) {
-  const flags = lines.flatMap((l) => ["-e", l]);
-  const res = await run("osascript", [...flags, ...args]);
-  if (res.code !== 0) throw new Error(res.stderr || `osascript exit ${res.code}`);
-  return res.stdout;
-}
+import { clip, formatResult, osascript, run } from "./system.js";
 
 function requireString(input, key) {
   const value = input?.[key];
@@ -373,10 +328,6 @@ export const toolDefinitions = tools.map(({ name, description, input_schema }) =
   input_schema,
 }));
 
-export function getTool(name) {
-  return byName.get(name);
-}
-
 // Testo breve da mostrare sull'iPhone quando l'AI usa uno strumento.
 export function describeToolCall(name, input) {
   switch (name) {
@@ -399,106 +350,24 @@ export function describeToolCall(name, input) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Stato del Mac per i widget e controlli diretti (senza passare dall'AI).
+// Esegue uno strumento con le regole di IDLE SYNC: conferma se serve, notifica ai dispositivi, errori leggibili.
+// Restituisce il contenuto nel formato dei blocchi dell'API (stringa oppure array di blocchi text/image).
+export async function executeTool(name, input, { io, autoApprove, signal }) {
+  const tool = byName.get(name);
+  if (!tool) return { isError: true, content: `Strumento sconosciuto: ${name}` };
+  const args = input ?? {};
+  const detail = describeToolCall(name, args);
 
-async function isRunning(processName) {
-  const res = await run("pgrep", ["-x", processName]).catch(() => ({ code: 1 }));
-  return res.code === 0;
-}
-
-async function nowPlaying() {
-  // Si interroga un'app solo se è già aperta, così non viene avviata per sbaglio.
-  for (const app of ["Spotify", "Music"]) {
-    if (!(await isRunning(app))) continue;
-    try {
-      const out = await osascript([
-        `tell application "${app}"`,
-        'if player state is stopped then return ""',
-        "set sep to character id 31",
-        "return (player state as text) & sep & (name of current track) & sep & (artist of current track)",
-        "end tell",
-      ]);
-      if (!out) continue;
-      const [state, title, artist] = out.split("\u001f");
-      return { app, playing: state === "playing", title, artist };
-    } catch {
-      // App aperta ma senza brano, o permesso di Automazione negato.
-    }
+  if (tool.needsApproval && !autoApprove) {
+    const ok = await io.approve(name, detail);
+    if (signal?.aborted) throw new Error("Annullato");
+    if (!ok) return { isError: true, content: "L'utente ha rifiutato questa azione." };
   }
-  return null;
-}
 
-async function frontApp() {
-  const asn = (await run("lsappinfo", ["front"])).stdout;
-  if (!asn) return null;
-  const info = (await run("lsappinfo", ["info", "-only", "name", asn])).stdout;
-  return info.match(/"([^"]+)"\s*$/)?.[1] ?? null;
-}
-
-async function volume() {
-  const out = await osascript(["get volume settings"]);
-  const level = Number(out.match(/output volume:(\d+)/)?.[1]);
-  return { level: Number.isFinite(level) ? level : null, muted: /output muted:true/.test(out) };
-}
-
-async function battery() {
-  const out = (await run("pmset", ["-g", "batt"])).stdout;
-  const m = out.match(/(\d+)%;\s*([a-zA-Z ]+)/);
-  if (!m) return null; // Mac senza batteria
-  return { percent: Number(m[1]), charging: /^(charging|charged|AC attached|finishing charge)/i.test(m[2].trim()) };
-}
-
-const DEMO_STATUS = {
-  app: "Safari",
-  volume: { level: 42, muted: false },
-  battery: { percent: 78, charging: false },
-  nowPlaying: { app: "Spotify", playing: true, title: "Weightless", artist: "Marconi Union" },
-};
-
-export async function readMacStatus() {
-  if (process.env.IDLE_DEMO === "1") return structuredClone(DEMO_STATUS);
-  if (process.platform !== "darwin") return null;
-  const safe = (p) => p.catch(() => null);
-  const [app, vol, batt, playing] = await Promise.all([safe(frontApp()), safe(volume()), safe(battery()), safe(nowPlaying())]);
-  return { app, volume: vol, battery: batt, nowPlaying: playing };
-}
-
-// Comandi immediati dai widget: nessuna chiamata al modello.
-export async function runControl(action, value) {
-  if (process.env.IDLE_DEMO === "1") {
-    const s = DEMO_STATUS;
-    if (action === "playpause" && s.nowPlaying) s.nowPlaying.playing = !s.nowPlaying.playing;
-    if (action === "volume") s.volume.level = Math.max(0, Math.min(100, Math.round(value)));
-    if (action === "mute") s.volume.muted = !s.volume.muted;
-    return;
-  }
-  if (process.platform !== "darwin") throw new Error("Controlli disponibili solo su macOS");
-  switch (action) {
-    case "playpause":
-    case "next":
-    case "previous": {
-      const current = await nowPlaying();
-      const app = current?.app ?? ((await isRunning("Music")) && !(await isRunning("Spotify")) ? "Music" : "Spotify");
-      const cmd = { playpause: "playpause", next: "next track", previous: "previous track" }[action];
-      await osascript([`tell application "${app}" to ${cmd}`]);
-      return;
-    }
-    case "volume": {
-      const level = Math.max(0, Math.min(100, Math.round(Number(value))));
-      if (!Number.isFinite(level)) throw new Error("Volume non valido");
-      await osascript([`set volume output volume ${level}`, "set volume without output muted"]);
-      return;
-    }
-    case "mute": {
-      const { muted } = await volume();
-      await osascript([muted ? "set volume without output muted" : "set volume with output muted"]);
-      return;
-    }
-    case "sleep_display":
-      await run("pmset", ["displaysleepnow"]);
-      return;
-    default:
-      throw new Error(`Controllo sconosciuto: ${action}`);
+  io.tool(name, detail);
+  try {
+    return { isError: false, content: await tool.run(args) };
+  } catch (err) {
+    return { isError: true, content: `Errore: ${err.message}` };
   }
 }

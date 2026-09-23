@@ -8,6 +8,13 @@ LABEL="com.idle-sync.server"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 NODE="$(command -v node)"
+CLAUDE="$(command -v claude || true)"
+if [[ -z "$CLAUDE" ]]; then
+  echo "⚠️  Comando «claude» non trovato: installa Claude Code e fai login prima di attivare l'avvio automatico."
+  exit 1
+fi
+# launchd parte con un PATH minimo: aggiungiamo le cartelle di node e claude.
+EXTRA_PATH="$(dirname "$NODE"):$(dirname "$CLAUDE")"
 
 if [[ "${1:-}" == "remove" ]]; then
   launchctl bootout "gui/$(id -u)" "$PLIST" 2>/dev/null || true
@@ -27,7 +34,7 @@ cat > "$PLIST" <<PLIST
   <array><string>$NODE</string><string>$DIR/server.js</string></array>
   <key>WorkingDirectory</key><string>$DIR</string>
   <key>EnvironmentVariables</key>
-  <dict><key>PATH</key><string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
+  <dict><key>PATH</key><string>$EXTRA_PATH:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
   <key>StandardOutPath</key><string>$DIR/.data/server.log</string>
@@ -40,4 +47,4 @@ mkdir -p "$DIR/.data"
 launchctl bootout "gui/$(id -u)" "$PLIST" 2>/dev/null || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
 echo "✅ IDLE SYNC partirà da solo a ogni accesso. Log: $DIR/.data/server.log"
-echo "   Il link per l'iPhone è scritto nel log."
+echo "   Il codice di abbinamento è scritto nel log (e in Opzioni › Abbina un nuovo dispositivo)."
