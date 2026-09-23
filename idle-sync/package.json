@@ -1,0 +1,19 @@
+{
+  "name": "idle-sync",
+  "version": "2.0.0",
+  "private": true,
+  "description": "IDLE SYNC: telecomando AI vocale per il Mac, sincronizzato tra iPhone, iPad e browser",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "qrcode-terminal": "^0.12.0",
+    "ws": "^8.18.0"
+  }
+}

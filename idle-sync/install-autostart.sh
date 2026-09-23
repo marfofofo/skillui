@@ -1,10 +1,10 @@
 #!/bin/bash
-# Fa partire AI Remote automaticamente all'accesso al Mac (LaunchAgent).
+# Fa partire IDLE SYNC automaticamente all'accesso al Mac (LaunchAgent).
 # Uso: ./install-autostart.sh        per installare
 #      ./install-autostart.sh remove per rimuovere
 set -euo pipefail
 
-LABEL="com.ai-remote.server"
+LABEL="com.idle-sync.server"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 NODE="$(command -v node)"
@@ -39,5 +39,5 @@ PLIST
 mkdir -p "$DIR/.data"
 launchctl bootout "gui/$(id -u)" "$PLIST" 2>/dev/null || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
-echo "✅ AI Remote partirà da solo a ogni accesso. Log: $DIR/.data/server.log"
+echo "✅ IDLE SYNC partirà da solo a ogni accesso. Log: $DIR/.data/server.log"
 echo "   Il link per l'iPhone è scritto nel log."

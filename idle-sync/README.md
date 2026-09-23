@@ -1,21 +1,28 @@
-# AI Remote: il tuo vecchio iPhone come telecomando AI per il Mac
+# IDLE SYNC
 
-Trasforma un iPhone che non usi più in un oggetto fisico dedicato: lo prendi in mano, tocchi il microfono, parli, e l'assistente (Claude) fa le cose sul tuo MacBook e ti risponde a voce.
+**Versione 2 di IDLE SOCIAL** ([`../idle-social`](../idle-social)). Il tuo vecchio iPhone, o qualsiasi iPad o browser, diventa un telecomando AI vocale per il Mac: parli, Claude agisce sul MacBook e ti risponde a voce. Tutti i dispositivi collegati restano sincronizzati.
 
-> «Apri Spotify e metti la musica» · «Alza il volume al 40» · «Cosa c'è sullo schermo?» · «Apri un nuovo tab e cerca il meteo di Milano» · «Accendi le luci del salotto» · «Copia negli appunti l'indirizzo del ristorante»
+> «Metti un po' di musica» · «Alza il volume al 40» · «Cosa c'è sullo schermo?» · «Accendi le luci del salotto»
 
 ```
-┌──────────────┐   Wi-Fi (HTTPS + WebSocket)  ┌───────────────────────┐        ┌────────────┐
-│  iPhone      │ ───── voce → testo ───────▶ │  MacBook              │ ─────▶ │ Claude API │
-│  (web app a  │                              │  server.js + agente   │ ◀───── │            │
-│  tutto       │ ◀──── risposta parlata ───── │  esegue gli strumenti │        └────────────┘
-│  schermo)    │ ◀──── richieste di conferma  │  (app, tasti, shell…) │
-└──────────────┘                              └───────────────────────┘
+ iPhone ─┐                                   ┌──────────────────────────┐        ┌────────────┐
+ iPad   ─┼── Wi-Fi (HTTPS + WebSocket) ────▶ │ Mac: server.js + agente  │ ─────▶ │ Claude API │
+ browser─┘  stessa conversazione, cronologia │ strumenti, stato, dati   │ ◀───── │ (streaming)│
+            e impostazioni su tutti          └──────────────────────────┘        └────────────┘
 ```
 
-- **Niente Xcode né App Store**: sull'iPhone gira una web app installata sulla schermata Home, a tutto schermo come un'app vera.
-- **Il cervello è sul Mac**: la chiave API resta lì e i comandi vengono eseguiti lì.
-- **Sicuro per impostazione predefinita**: serve un codice di abbinamento segreto, e i comandi "potenti" (terminale, AppleScript libero) vanno confermati sul telefono.
+## Novità della versione 2
+
+| Funzione | Cosa fa |
+|---|---|
+| **Sincronizzazione** | Colleghi iPhone, iPad e browser insieme: vedono la stessa conversazione in tempo reale e chiunque può confermare un comando. La voce risponde solo sul dispositivo che ha fatto la domanda |
+| **Widget del Mac** | Nella schermata a riposo, in stile StandBy: brano in riproduzione con i controlli, volume, batteria e app in uso. I tasti agiscono subito, senza passare dall'AI (istantanei e gratuiti) |
+| **Azioni rapide** | Pulsanti sopra la sfera che mandano un comando con un tocco. Si creano, con nome, comando e icona, da Opzioni |
+| **Risposte in streaming** | Il testo compare mentre Claude lo scrive |
+| **Opzioni** | In stile Impostazioni di iOS: velocità/precisione delle risposte, istruzioni personali, conferma dei comandi, voce e velocità di lettura, azioni rapide, tema, nome del dispositivo, cancellazione della cronologia |
+| **Cronologia persistente** | Salvata sul Mac (`.data/history.json`), con ora e dispositivo di ogni richiesta |
+
+Impostazioni condivise (sul Mac): velocità delle risposte, istruzioni personali, conferme, azioni rapide. Impostazioni di ogni dispositivo: tema, voce, velocità di lettura, nome.
 
 ## Cosa sa fare
 
@@ -41,13 +48,13 @@ Trasforma un iPhone che non usi più in un oggetto fisico dedicato: lo prendi in
 Serve **Node.js 20.12 o successivo** (`brew install node`).
 
 ```bash
-cd ai-remote
+cd idle-sync
 npm install
 cp .env.example .env      # poi apri .env e inserisci la tua ANTHROPIC_API_KEY
 npm start
 ```
 
-Il terminale mostra un link del tipo `https://192.168.1.23:8787/?t=…` e un **QR code**.
+Il terminale mostra un link del tipo `https://192.168.1.23:8788/?t=…` e un **QR code**.
 
 ### 2. Permessi di macOS (una volta sola)
 
@@ -62,23 +69,21 @@ Al primo utilizzo macOS chiede alcune autorizzazioni per il Terminale (o per `no
 1. Collega l'iPhone alla **stessa rete Wi-Fi** del Mac.
 2. Inquadra il QR code con la Fotocamera (oppure apri il link in **Safari**).
 3. Safari avvisa che il certificato non è attendibile, perché è generato dal tuo Mac. Tocca **Mostra dettagli → visita questo sito web**.
-4. Tocca **Condividi → Aggiungi alla schermata Home**. Da ora "AI Remote" si apre a tutto schermo come un'app.
+4. Tocca **Condividi → Aggiungi alla schermata Home**. Da ora "IDLE SYNC" si apre a tutto schermo come un'app.
 5. Tocca il microfono e concedi il permesso. Fatto!
 
 > Se il riconoscimento vocale di Safari non funziona sul tuo iOS, usa il tasto 🎤 della tastiera nel campo di testo: la dettatura di iOS funziona sempre.
 
 ## Design
 
-L'app segue il linguaggio visivo dei sistemi Apple: font di sistema (SF Pro su iPhone), orologio grande in stile Blocco schermo, sfera fluida con bagliore sui bordi dello schermo mentre ascolta, risposte in card di vetro con le azioni come righe con icona, menu «…» con controllo segmentato e interruttore, e un foglio di conferma con **scorri per eseguire**.
-
-Tema scelto dal menu «…» → Aspetto: **Auto** (segue l'iPhone), **Chiaro**, **Scuro**.
+Linguaggio visivo dei sistemi Apple: SF Pro, orologio da Blocco schermo, widget stile StandBy, sfera fluida con bordi luminosi mentre ascolta, card di vetro, fogli e menu nativi, **scorri per eseguire** per le conferme.
 
 - **Scuro**: Obsidian Ink `#151311` · Velvet Curfew `#4B262F` · Almond Hearth `#EED3BA`
 - **Chiaro**: Steel Mist `#CFCFCF` · Nox Noir `#141414` · Royal Amethyst `#7E49B3`
 
 ## Farlo diventare un "oggetto" dedicato
 
-- **Accesso Guidato** (Impostazioni → Accessibilità → Accesso Guidato): blocca l'iPhone dentro AI Remote, così diventa un telecomando e basta. Triplo clic sul tasto laterale per attivarlo.
+- **Accesso Guidato** (Impostazioni → Accessibilità → Accesso Guidato): blocca l'iPhone dentro IDLE SYNC, così diventa un telecomando e basta. Triplo clic sul tasto laterale per attivarlo.
 - **Blocco automatico: Mai** (Impostazioni → Schermo e luminosità), con l'iPhone sempre in carica su un supporto accanto al Mac. L'app tiene già lo schermo acceso quando è aperta.
 - **Avvio automatico sul Mac**: `./install-autostart.sh` fa partire il server a ogni accesso, quindi quando accendi il Mac il telecomando è subito pronto. Per toglierlo: `./install-autostart.sh remove`.
 - Il codice di abbinamento resta salvato in `.data/token`: il link non cambia tra un riavvio e l'altro. Per revocare l'accesso a tutti i dispositivi, cancella quel file.
@@ -97,10 +102,11 @@ Il progetto è già pensato per crescere:
 | Variabile | Predefinito | Note |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | – | Obbligatoria |
-| `PORT` | `8787` | |
+| `PORT` | `8788` | Diversa da IDLE SOCIAL (8787), così possono girare insieme |
 | `MODEL` | `claude-opus-5` | |
-| `EFFORT` | `low` | `low` = risposte rapide, adatto alla voce. Alza a `medium`/`high` per compiti complessi |
-| `AUTO_APPROVE` | `false` | `true` salta la conferma per shell/AppleScript (sconsigliato) |
+| `EFFORT` | `low` | Valore iniziale di «Risposte» in Opzioni (`low` Rapide, `medium` Bilanciate, `high` Accurate) |
+| `AUTO_APPROVE` | `false` | Valore iniziale di «Conferma i comandi potenti» in Opzioni (`true` = nessuna conferma, sconsigliato) |
+| `IDLE_DEMO` | – | `1` mostra widget con dati di esempio: utile per provare l'interfaccia senza un Mac |
 | `FALLBACKS` | `on` | Se il modello rifiuta una richiesta, l'API riprova in automatico con un altro modello |
 | `HTTPS` | `on` | `off` solo per test: senza HTTPS Safari non concede il microfono |
 

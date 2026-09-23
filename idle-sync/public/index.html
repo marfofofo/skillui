@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IDLE SYNC">
+  <meta name="theme-color" content="#151311" id="themeColor">
+  <script>
+    // Applica il tema prima del primo disegno, per evitare lampi di colore.
+    (function () {
+      var pref = "auto";
+      try { pref = localStorage.getItem("theme") || "auto"; } catch (e) {}
+      var light = pref === "light" || (pref === "auto" && matchMedia("(prefers-color-scheme: light)").matches);
+      document.documentElement.dataset.theme = light ? "light" : "dark";
+    })();
+  </script>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="style.css">
+  <title>IDLE SYNC</title>
+</head>
+<body data-state="offline">
+  <!-- Bagliore sui bordi dello schermo mentre ascolta o risponde -->
+  <div class="edge" aria-hidden="true"><div class="edge-ring"></div><div class="edge-ring blur"></div></div>
+
+  <div id="toast" class="toast material-thick" role="status" hidden></div>
+
+  <header class="top">
+    <div class="pill material">
+      <span class="dot" aria-hidden="true"></span>
+      <span id="host">Connessione…</span>
+      <span id="deviceCount" class="pill-count" hidden></span>
+    </div>
+    <button id="menuBtn" class="round material" aria-label="Altro" aria-haspopup="menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" class="solid"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg>
+    </button>
+  </header>
+
+  <section class="clock" aria-hidden="true">
+    <p id="clockDate" class="clock-date"></p>
+    <p id="clockTime" class="clock-time">--:--</p>
+  </section>
+
+  <main class="stage">
+    <!-- Widget del Mac, stile StandBy -->
+    <section id="widgets" class="widgets" hidden>
+      <article id="wPlaying" class="widget wide material" hidden>
+        <div class="art"><svg viewBox="0 0 24 24"><path d="M9 17.5V6.5l10-2v11"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/></svg></div>
+        <div class="np-text">
+          <p id="npApp" class="w-kicker"></p>
+          <p id="npTitle" class="np-title"></p>
+          <p id="npArtist" class="np-artist"></p>
+        </div>
+        <div class="np-controls">
+          <button class="np-btn" data-control="previous" aria-label="Brano precedente"><svg viewBox="0 0 24 24" class="solid"><path d="M11 12l8-5.5v11zM4 12l7-5.5v11z"/></svg></button>
+          <button class="np-btn big" data-control="playpause" aria-label="Riproduci o metti in pausa">
+            <svg viewBox="0 0 24 24" class="solid i-play"><path d="M7.5 5v14l11.5-7z"/></svg>
+            <svg viewBox="0 0 24 24" class="solid i-pause"><rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/></svg>
+          </button>
+          <button class="np-btn" data-control="next" aria-label="Brano successivo"><svg viewBox="0 0 24 24" class="solid"><path d="M13 12L5 6.5v11zM20 12l-7-5.5v11z"/></svg></button>
+        </div>
+      </article>
+      <article id="wApp" class="widget wide material" hidden>
+        <div class="art app"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="10" rx="1.8"/><path d="M3 18.5h18"/></svg></div>
+        <div class="np-text">
+          <p class="w-kicker">In uso sul Mac</p>
+          <p id="appName" class="np-title"></p>
+        </div>
+      </article>
+      <div class="widget-row">
+        <article id="wBattery" class="widget material" hidden>
+          <svg class="ring" viewBox="0 0 44 44" aria-hidden="true">
+            <circle cx="22" cy="22" r="18" class="ring-track"/>
+            <circle cx="22" cy="22" r="18" class="ring-fill" id="battRing"/>
+          </svg>
+          <div>
+            <p class="w-kicker">Batteria</p>
+            <p id="battText" class="w-value"></p>
+          </div>
+        </article>
+        <article id="wVolume" class="widget material" hidden>
+          <div class="vol-head">
+            <p class="w-kicker">Volume</p>
+            <button id="muteBtn" class="mute-btn" aria-label="Muto">
+              <svg viewBox="0 0 24 24" class="i-on"><path d="M4 10v4h3.5L12 18V6L7.5 10H4z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6"/></svg>
+              <svg viewBox="0 0 24 24" class="i-off"><path d="M4 10v4h3.5L12 18V6L7.5 10H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+            </button>
+          </div>
+          <input id="volSlider" class="range" type="range" min="0" max="100" step="1" aria-label="Volume del Mac">
+        </article>
+      </div>
+    </section>
+
+    <article id="card" class="card material" hidden>
+      <button id="cardClose" class="card-close" aria-label="Chiudi"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
+      <p id="heard" class="heard"></p>
+      <p id="reply" class="reply"></p>
+      <ul id="steps" class="steps" aria-live="polite"></ul>
+    </article>
+  </main>
+
+  <section class="dock">
+    <div id="quick" class="quick" role="list"></div>
+
+    <button id="orbBtn" class="orb" aria-label="Parla">
+      <canvas id="orb" aria-hidden="true"></canvas>
+    </button>
+    <p id="caption" class="caption">Tocca per parlare</p>
+
+    <form id="form" class="field material" autocomplete="off">
+      <input id="text" type="text" placeholder="Chiedi a IDLE SYNC" enterkeyhint="send" aria-label="Comando">
+      <button type="submit" class="send" aria-label="Invia">
+        <svg viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/></svg>
+      </button>
+    </form>
+  </section>
+
+  <!-- Menu a comparsa -->
+  <div id="menuScrim" class="scrim clear" hidden></div>
+  <div id="menu" class="menu material-thick" role="menu" hidden>
+    <button class="menu-row" id="optionsBtn" role="menuitem">
+      <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/><path d="M19.4 13.5l1.6 1.2-2 3.4-1.9-.8a7.5 7.5 0 0 1-2.2 1.3L14.6 21h-4l-.3-2.4a7.5 7.5 0 0 1-2.2-1.3l-1.9.8-2-3.4 1.6-1.2a7.6 7.6 0 0 1 0-2.9L4.2 9.3l2-3.4 1.9.8a7.5 7.5 0 0 1 2.2-1.3L10.6 3h4l.3 2.4a7.5 7.5 0 0 1 2.2 1.3l1.9-.8 2 3.4-1.6 1.2a7.6 7.6 0 0 1 0 2.9z"/></svg></span>
+      <span class="menu-text">Opzioni</span>
+    </button>
+    <button class="menu-row" id="historyBtn" role="menuitem">
+      <span class="menu-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></span>
+      <span class="menu-text">Cronologia</span>
+    </button>
+    <button class="menu-row" id="reset" role="menuitem">
+      <span class="menu-icon"><svg viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v4h4"/></svg></span>
+      <span class="menu-text">Nuova conversazione</span>
+    </button>
+  </div>
+
+  <!-- Richiesta di conferma, in stile foglio di sistema -->
+  <div id="sheetScrim" class="scrim" hidden></div>
+  <section id="approval" class="sheet material-thick" role="dialog" aria-modal="true" aria-labelledby="approvalTitle" hidden>
+    <span class="grabber" aria-hidden="true"></span>
+    <div class="sheet-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="3.5"/><path d="M7 10l3 2.5L7 15M12.5 15H17"/></svg></div>
+    <h2 id="approvalTitle" class="sheet-title"></h2>
+    <p class="sheet-sub">IDLE SYNC vorrebbe eseguire questa azione sul tuo Mac.</p>
+    <pre id="approvalDetail" class="code"></pre>
+    <div id="slider" class="slider" role="slider" aria-label="Scorri per eseguire" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+      <span class="slider-text">scorri per eseguire</span>
+      <span class="knob"><svg viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></svg></span>
+    </div>
+    <button id="deny" class="text-btn">Non consentire</button>
+  </section>
+
+  <!-- Cronologia -->
+  <section id="history" class="page" hidden>
+    <div class="page-bar">
+      <span></span>
+      <button class="text-btn strong" data-close="history">Fine</button>
+    </div>
+    <div class="page-scroll">
+      <h1 class="large-title">Cronologia</h1>
+      <ol id="log" class="history-list"></ol>
+    </div>
+  </section>
+
+  <!-- Opzioni, in stile Impostazioni -->
+  <section id="options" class="page" hidden>
+    <div class="page-bar">
+      <span></span>
+      <button class="text-btn strong" data-close="options">Fine</button>
+    </div>
+    <div class="page-scroll">
+      <h1 class="large-title">Opzioni</h1>
+
+      <div class="group">
+        <div class="cell hero">
+          <img src="icon.svg" alt="" class="hero-icon">
+          <div>
+            <p class="hero-title">IDLE SYNC</p>
+            <p id="heroSub" class="hero-sub">Versione 2.0</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="group-header">Dispositivi collegati</p>
+      <div id="deviceList" class="group"></div>
+      <p class="group-footer">Tutti i dispositivi vedono la stessa conversazione e possono confermare i comandi.</p>
+
+      <p class="group-header">Questo dispositivo</p>
+      <div class="group">
+        <label class="cell">
+          <span class="cell-label">Nome</span>
+          <input id="deviceName" class="cell-input" type="text" maxlength="40" enterkeyhint="done">
+        </label>
+      </div>
+
+      <p class="group-header">Assistente</p>
+      <div class="group">
+        <div class="cell stack">
+          <span class="cell-label">Risposte</span>
+          <div class="segmented" id="effortSeg" role="radiogroup" aria-label="Risposte">
+            <span class="seg-thumb" aria-hidden="true"></span>
+            <button role="radio" data-value="low">Rapide</button>
+            <button role="radio" data-value="medium">Bilanciate</button>
+            <button role="radio" data-value="high">Accurate</button>
+          </div>
+        </div>
+        <div class="cell stack">
+          <span class="cell-label">Istruzioni personali</span>
+          <textarea id="instructions" class="cell-textarea" rows="3" maxlength="2000" placeholder="Es. chiamami Marco, uso Spotify, rispondi in modo informale."></textarea>
+        </div>
+      </div>
+      <p class="group-footer">Le risposte rapide sono ideali per la voce; quelle accurate ragionano di più sui compiti complessi.</p>
+
+      <p class="group-header">Sicurezza</p>
+      <div class="group">
+        <label class="cell">
+          <span class="cell-label">Conferma i comandi potenti</span>
+          <input id="confirmSwitch" type="checkbox" class="switch" role="switch">
+        </label>
+      </div>
+      <p class="group-footer">Comandi del Terminale e script AppleScript vanno approvati da uno dei tuoi dispositivi prima di partire.</p>
+
+      <p class="group-header">Voce</p>
+      <div class="group">
+        <label class="cell">
+          <span class="cell-label">Leggi le risposte</span>
+          <input id="speakSwitch" type="checkbox" class="switch" role="switch">
+        </label>
+        <label class="cell">
+          <span class="cell-label">Voce</span>
+          <select id="voiceSelect" class="cell-select"></select>
+        </label>
+        <div class="cell">
+          <svg class="range-icon" viewBox="0 0 24 24"><path d="M5 14.5c0-3 2.5-5.5 6-5.5s6 2.5 6 5.5H5zM17 13h2.5a1.5 1.5 0 0 0 0-3H18M7 14.5v2.5M15 14.5v2.5"/></svg>
+          <input id="rateSlider" class="range" type="range" min="0.7" max="1.4" step="0.05" aria-label="Velocità della voce">
+          <svg class="range-icon" viewBox="0 0 24 24"><path d="M4 13c2-4 6-6 10-5l4-3v5l2 2-3 2c-2 3-7 4-13-1z"/></svg>
+        </div>
+      </div>
+
+      <p class="group-header">Azioni rapide</p>
+      <div class="group">
+        <div id="qaList"></div>
+        <button id="qaAdd" class="cell tint-row"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>Aggiungi azione rapida</button>
+        <form id="qaForm" class="qa-form" hidden>
+          <input id="qaLabel" class="cell-input full" type="text" maxlength="40" placeholder="Nome, es. Luci soggiorno" required>
+          <textarea id="qaPrompt" class="cell-textarea" rows="2" maxlength="500" placeholder="Cosa deve fare, es. Accendi le luci del soggiorno al 50%" required></textarea>
+          <div id="qaIcons" class="qa-icons" role="radiogroup" aria-label="Icona"></div>
+          <div class="qa-buttons">
+            <button type="button" id="qaCancel" class="text-btn">Annulla</button>
+            <button type="submit" class="text-btn strong">Aggiungi</button>
+          </div>
+        </form>
+      </div>
+
+      <p class="group-header">Aspetto</p>
+      <div class="group">
+        <div class="cell">
+          <div class="segmented" id="themeSeg" role="radiogroup" aria-label="Tema">
+            <span class="seg-thumb" aria-hidden="true"></span>
+            <button role="radio" data-value="auto">Auto</button>
+            <button role="radio" data-value="light">Chiaro</button>
+            <button role="radio" data-value="dark">Scuro</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="group-header">Dati</p>
+      <div class="group">
+        <button id="clearHistory" class="cell destructive">Cancella cronologia</button>
+      </div>
+
+      <p class="page-footer">IDLE SYNC 2.0 · nata da IDLE SOCIAL</p>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>

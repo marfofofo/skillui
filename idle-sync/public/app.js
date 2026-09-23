@@ -1,5 +1,6 @@
-// AI Remote — web app per l'iPhone.
-// Microfono → testo → Mac; la risposta torna in una card e viene letta ad alta voce.
+// IDLE SYNC — web app per iPhone, iPad e browser.
+// Microfono → testo → Mac; la risposta arriva in streaming e viene letta ad alta voce.
+// Tutti i dispositivi collegati condividono conversazione, cronologia e impostazioni.
 
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -24,6 +25,25 @@
   const token = params.get("t") || store.get("token");
   if (params.get("t")) store.set("token", params.get("t"));
 
+  const ua = navigator.userAgent;
+  const guessedDevice = /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? "iPad"
+    : /iPhone/.test(ua) ? "iPhone" : /Macintosh/.test(ua) ? "Mac" : "Browser";
+
+  // Preferenze locali di questo dispositivo
+  const local = {
+    device: store.get("device") || guessedDevice,
+    speak: store.get("speak") !== "off",
+    voice: store.get("voice") || "",
+    rate: Number(store.get("rate")) || 1,
+    theme: store.get("theme") || "auto",
+  };
+
+  // Stato condiviso, ricevuto dal Mac
+  let me = null;
+  let settings = { effort: "low", autoApprove: false, instructions: "", quickActions: [] };
+  let devices = [];
+  let mac = null;
+
   let ws = null;
   let connected = false;
   let busy = false;
@@ -31,11 +51,11 @@
   let speaking = false;
   let pendingApprovalId = null;
   let retryDelay = 1000;
-  let speakEnabled = store.get("speak") !== "off";
-  let exchange = null; // { user, reply, tools[] } in corso
+  let exchange = null; // { user, origin }
+  let streamText = "";
 
   // ---------------------------------------------------------------------------
-  // Icone in stile simboli di sistema, e descrizione di ogni strumento
+  // Icone in stile simboli di sistema
 
   const ICON = {
     app: '<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',
@@ -56,7 +76,14 @@
     info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/>',
     check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
     warn: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/>',
+    moon: '<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/>',
+    bulb: '<path d="M9 17.5h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
+    mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="M4 7l8 6 8-6"/>',
+    phone: '<rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2"/>',
+    tablet: '<rect x="4.5" y="3" width="15" height="18" rx="2.5"/><path d="M11 18h2"/>',
+    minus: '<circle cx="12" cy="12" r="8.5" fill="currentColor" stroke="none"/><path d="M8.5 12h7" stroke="#fff" stroke-width="2.2"/>',
   };
+  const QA_ICONS = ["play", "viewfinder", "moon", "laptop", "sparkles", "globe", "bulb", "mail", "speaker", "terminal"];
 
   const TOOLS = {
     open_app:        { icon: "app",        title: (d) => `Apro ${d || "l'app"}` },
@@ -77,7 +104,8 @@
     run_shell:       { icon: "terminal",   title: () => "Eseguo un comando", detail: true },
   };
 
-  const svg = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`;
+  const svg = (name, cls = "") => `<svg viewBox="0 0 24 24" class="${cls}" aria-hidden="true">${ICON[name] || ICON.sparkles}</svg>`;
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
   // ---------------------------------------------------------------------------
   // Stato
@@ -108,8 +136,20 @@
     orb.setState(s);
   }
 
+  let toastTimer = null;
+  function toast(text) {
+    const el = $("toast");
+    el.textContent = text;
+    el.hidden = false;
+    el.style.animation = "none";
+    void el.offsetWidth;
+    el.style.animation = "";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => (el.hidden = true), 2800);
+  }
+
   // ---------------------------------------------------------------------------
-  // Card
+  // Card della conversazione
 
   function showCard() {
     card.hidden = false;
@@ -121,12 +161,14 @@
     body.classList.remove("has-card");
   }
 
-  function setReply(text, { pending = false } = {}) {
-    reply.classList.remove("enter");
-    void reply.offsetWidth; // riavvia l'animazione
+  function setReply(text, { pending = false, animate = true } = {}) {
     reply.classList.toggle("pending", pending);
+    if (animate) {
+      reply.classList.remove("enter");
+      void reply.offsetWidth; // riavvia l'animazione
+      reply.classList.add("enter");
+    }
     reply.textContent = text;
-    reply.classList.add("enter");
   }
 
   function settleSteps() {
@@ -146,43 +188,145 @@
       <span class="tile">${svg(error ? "warn" : meta.icon)}</span>
       <span class="step-text"><span class="step-title"></span><span class="step-detail"></span></span>
       <span class="step-state${error ? "" : " spin"}"></span>`;
-    li.querySelector(".step-title").textContent = meta.title(first.length > 40 ? `${first.slice(0, 40)}…` : first);
-    if (meta.detail && first) li.querySelector(".step-detail").textContent = first;
+    li.querySelector(".step-title").textContent = error ? "Errore" : meta.title(first.length > 40 ? `${first.slice(0, 40)}…` : first);
+    if ((meta.detail || error) && first) li.querySelector(".step-detail").textContent = first;
     steps.appendChild(li);
     while (steps.children.length > 5) steps.firstChild.remove();
     card.scrollTop = card.scrollHeight;
   }
 
-  // ---------------------------------------------------------------------------
-  // Cronologia
+  $("cardClose").onclick = () => {
+    if (!busy) hideCard();
+  };
 
-  function pushHistory(entry) {
+  // ---------------------------------------------------------------------------
+  // Cronologia (condivisa, salvata sul Mac)
+
+  const timeFmt = new Intl.DateTimeFormat("it-IT", { weekday: "short", hour: "2-digit", minute: "2-digit" });
+
+  function historyItem(entry) {
     const li = document.createElement("li");
-    if (entry.user) {
-      const u = document.createElement("p");
-      u.className = "u";
-      u.textContent = entry.user;
-      li.appendChild(u);
-    }
-    const a = document.createElement("p");
-    a.className = "a";
-    a.textContent = entry.reply;
-    li.appendChild(a);
-    if (entry.tools.length) {
+    const tools = (entry.tools || []).map((n) => (TOOLS[n] ? TOOLS[n].title("").replace(/\s*«?»?$/, "") : n));
+    li.innerHTML = `
+      <p class="meta">${esc(timeFmt.format(entry.ts))} · ${esc(entry.device || "")}</p>
+      <p class="u">${esc(entry.user || "")}</p>
+      <p class="a">${esc(entry.reply || "")}</p>`;
+    if (tools.length) {
       const t = document.createElement("p");
-      t.className = "t";
-      t.textContent = entry.tools.map((n) => (TOOLS[n] ? TOOLS[n].title("").replace(/\s*«?»?$/, "") : n)).join(" · ");
+      t.className = "meta";
+      t.style.margin = "8px 0 0";
+      t.textContent = [...new Set(tools)].join(" · ");
       li.appendChild(t);
     }
-    log.querySelector(".empty")?.remove();
-    log.prepend(li);
-    while (log.children.length > 60) log.lastChild.remove();
+    return li;
   }
 
-  function resetHistoryView() {
-    log.innerHTML = '<li class="empty">Nessuna richiesta</li>';
+  function renderHistory(entries) {
+    log.innerHTML = "";
+    if (!entries.length) {
+      log.innerHTML = '<li class="empty">Nessuna richiesta</li>';
+      return;
+    }
+    for (const e of [...entries].reverse()) log.appendChild(historyItem(e));
   }
-  resetHistoryView();
+
+  function prependHistory(entry) {
+    log.querySelector(".empty")?.remove();
+    log.prepend(historyItem(entry));
+    while (log.children.length > 100) log.lastChild.remove();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Widget del Mac
+
+  let volDragging = false;
+  const volSlider = $("volSlider");
+
+  function paintRange(el) {
+    const min = Number(el.min);
+    const max = Number(el.max);
+    el.style.setProperty("--p", `${((Number(el.value) - min) / (max - min)) * 100}%`);
+  }
+
+  function renderMac() {
+    const w = $("widgets");
+    if (!mac) {
+      w.hidden = true;
+      return;
+    }
+    w.hidden = false;
+
+    const np = mac.nowPlaying;
+    $("wPlaying").hidden = !np;
+    $("wApp").hidden = !!np || !mac.app;
+    if (np) {
+      $("wPlaying").classList.toggle("playing", np.playing);
+      $("npApp").textContent = np.app === "Music" ? "Musica" : np.app;
+      $("npTitle").textContent = np.title || "";
+      $("npArtist").textContent = np.artist || "";
+    }
+    if (mac.app) $("appName").textContent = mac.app;
+
+    const b = mac.battery;
+    $("wBattery").hidden = !b;
+    if (b) {
+      $("battText").textContent = `${b.percent}%${b.charging ? " ⚡︎" : ""}`;
+      $("battRing").style.strokeDashoffset = String(113.1 * (1 - b.percent / 100));
+      $("wBattery").classList.toggle("low", b.percent <= 20 && !b.charging);
+    }
+
+    const v = mac.volume;
+    $("wVolume").hidden = !v || v.level == null;
+    if (v && v.level != null) {
+      $("wVolume").classList.toggle("muted", v.muted);
+      if (!volDragging) {
+        volSlider.value = String(v.level);
+        paintRange(volSlider);
+      }
+    }
+  }
+
+  let volTimer = null;
+  volSlider.addEventListener("input", () => {
+    volDragging = true;
+    paintRange(volSlider);
+    clearTimeout(volTimer);
+    volTimer = setTimeout(() => sendMsg({ type: "control", action: "volume", value: Number(volSlider.value) }), 120);
+  });
+  volSlider.addEventListener("change", () => {
+    sendMsg({ type: "control", action: "volume", value: Number(volSlider.value) });
+    setTimeout(() => (volDragging = false), 800);
+  });
+  $("muteBtn").onclick = () => sendMsg({ type: "control", action: "mute" });
+  document.querySelectorAll("[data-control]").forEach((b) => {
+    b.onclick = () => {
+      if (b.dataset.control === "playpause" && mac?.nowPlaying) {
+        mac.nowPlaying.playing = !mac.nowPlaying.playing; // risposta immediata, poi conferma dal Mac
+        renderMac();
+      }
+      sendMsg({ type: "control", action: b.dataset.control });
+    };
+  });
+
+  // ---------------------------------------------------------------------------
+  // Azioni rapide
+
+  function renderQuick() {
+    const q = $("quick");
+    q.innerHTML = "";
+    for (const a of settings.quickActions) {
+      const b = document.createElement("button");
+      b.className = "chip material";
+      b.setAttribute("role", "listitem");
+      b.innerHTML = `${svg(a.icon)}<span></span>`;
+      b.querySelector("span").textContent = a.label;
+      b.onclick = () => {
+        unlockSpeech();
+        sendCommand(a.prompt);
+      };
+      q.appendChild(b);
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Connessione
@@ -201,6 +345,7 @@
     socket.onopen = () => {
       retryDelay = 1000;
       connected = true;
+      socket.send(JSON.stringify({ type: "hi", device: local.device }));
       render();
     };
     socket.onclose = () => {
@@ -208,6 +353,7 @@
       connected = false;
       busy = false;
       hostLabel.textContent = "Non connesso";
+      $("deviceCount").hidden = true;
       closeApproval();
       render();
       setTimeout(connect, retryDelay);
@@ -221,42 +367,99 @@
       ws.send(JSON.stringify(msg));
       return true;
     }
-    showCard();
-    setReply("Il Mac non è raggiungibile.");
+    toast("Il Mac non è raggiungibile.");
     return false;
   }
 
   function handle(msg) {
     switch (msg.type) {
       case "hello":
+        me = msg.you;
         hostLabel.textContent = msg.host.replace(/\.local$/, "");
+        $("heroSub").textContent = `Versione ${msg.version} · ${msg.host.replace(/\.local$/, "")}`;
         busy = msg.busy;
+        settings = msg.settings;
+        mac = msg.mac;
+        renderSettings();
+        renderQuick();
+        renderMac();
+        renderHistory(msg.history || []);
         render();
+        break;
+      case "devices":
+        devices = msg.devices;
+        renderDevices();
+        break;
+      case "settings":
+        settings = msg.settings;
+        renderSettings();
+        renderQuick();
+        break;
+      case "mac":
+        mac = msg.status;
+        renderMac();
         break;
       case "busy":
         busy = msg.busy;
         if (!busy) settleSteps();
         render();
         break;
-      case "status":
+      case "command":
+        exchange = { user: msg.text, origin: msg.origin };
         showCard();
-        setReply(msg.text, { pending: busy });
+        heard.textContent = msg.origin === me ? msg.text : `${msg.device}: ${msg.text}`;
+        steps.innerHTML = "";
+        streamText = "";
+        setReply("Un attimo…", { pending: true });
+        break;
+      case "step":
+        streamText = "";
+        break;
+      case "delta":
+        showCard();
+        streamText += msg.text;
+        setReply(streamText, { animate: false });
+        break;
+      case "status":
+        if (!streamText) setReply(msg.text, { pending: true });
         break;
       case "tool":
         showCard();
         addStep(msg.name, msg.detail);
-        exchange?.tools.push(msg.name);
         break;
       case "approval":
         openApproval(msg);
         break;
-      case "reply":
-        finishExchange(msg.text);
+      case "approval:done":
+        if (pendingApprovalId === msg.id) {
+          closeApproval();
+          render();
+        }
         break;
+      case "reply":
       case "error":
         showCard();
-        addStep("error", msg.text, { error: true });
-        finishExchange(msg.text);
+        settleSteps();
+        if (msg.type === "error") addStep("error", msg.text, { error: true });
+        setReply(msg.text, { animate: !streamText || msg.type === "error" });
+        streamText = "";
+        if (msg.origin === me) speak(msg.text);
+        exchange = null;
+        break;
+      case "history:add":
+        prependHistory(msg.entry);
+        break;
+      case "history:clear":
+        renderHistory([]);
+        break;
+      case "reset":
+        heard.textContent = "";
+        steps.innerHTML = "";
+        reply.textContent = "";
+        hideCard();
+        break;
+      case "toast":
+        toast(msg.text);
         break;
     }
   }
@@ -264,26 +467,11 @@
   function sendCommand(text) {
     text = text.trim();
     if (!text) return;
-    if (busy) return;
-    if (!sendMsg({ type: "command", text })) return;
-    exchange = { user: text, reply: "", tools: [] };
-    showCard();
-    heard.textContent = text;
-    steps.innerHTML = "";
-    setReply("Un attimo…", { pending: true });
-    busy = true;
-    render();
-  }
-
-  function finishExchange(text) {
-    settleSteps();
-    setReply(text);
-    if (exchange) {
-      exchange.reply = text;
-      pushHistory(exchange);
-      exchange = null;
+    if (busy) {
+      toast("Sto ancora lavorando al comando precedente.");
+      return;
     }
-    speak(text);
+    sendMsg({ type: "command", text });
   }
 
   // ---------------------------------------------------------------------------
@@ -306,7 +494,7 @@
     sheet.hidden = false;
     sheetScrim.hidden = false;
     closeMenu();
-    speak("Serve la tua conferma.");
+    if (exchange?.origin === me) speak("Serve la tua conferma.");
     render();
   }
 
@@ -366,7 +554,7 @@
   $("deny").onclick = () => answerApproval(false);
 
   // ---------------------------------------------------------------------------
-  // Menu "…"
+  // Menu "…" e pagine
 
   const menu = $("menu");
   const menuBtn = $("menuBtn");
@@ -389,18 +577,156 @@
     closeMenu();
     $("history").hidden = false;
   };
-  $("historyClose").onclick = () => ($("history").hidden = true);
+  $("optionsBtn").onclick = () => {
+    closeMenu();
+    renderSettings();
+    $("options").hidden = false;
+  };
+  document.querySelectorAll("[data-close]").forEach((b) => {
+    b.onclick = () => ($(b.dataset.close).hidden = true);
+  });
 
   $("reset").onclick = () => {
     closeMenu();
-    if (!sendMsg({ type: "reset" })) return;
     stopSpeaking();
-    heard.textContent = "";
-    steps.innerHTML = "";
-    reply.textContent = "";
-    hideCard();
-    resetHistoryView();
-    render();
+    sendMsg({ type: "reset" });
+  };
+
+  // ---------------------------------------------------------------------------
+  // Opzioni
+
+  function setSegmented(seg, value) {
+    const buttons = [...seg.querySelectorAll("button")];
+    buttons.forEach((b, i) => {
+      const on = b.dataset.value === value;
+      b.setAttribute("aria-checked", String(on));
+      if (on) seg.querySelector(".seg-thumb").style.transform = `translateX(${i * 100}%)`;
+    });
+  }
+
+  function pushSettings(patch) {
+    settings = { ...settings, ...patch };
+    sendMsg({ type: "settings", patch: settings });
+  }
+
+  function renderDevices() {
+    const count = devices.length;
+    const badge = $("deviceCount");
+    badge.hidden = count < 2;
+    badge.textContent = `· ${count} dispositivi`;
+    const list = $("deviceList");
+    list.innerHTML = "";
+    for (const d of devices) {
+      const row = document.createElement("div");
+      row.className = "cell";
+      const icon = /iPad/i.test(d.device) ? "tablet" : /Mac|Browser/i.test(d.device) ? "laptop" : "phone";
+      row.innerHTML = `<span class="dev-icon">${svg(icon)}</span><span class="cell-label"></span>${d.id === me ? '<span class="tag">Questo dispositivo</span>' : ""}`;
+      row.querySelector(".cell-label").textContent = d.device;
+      list.appendChild(row);
+    }
+  }
+
+  function renderQaList() {
+    const list = $("qaList");
+    list.innerHTML = "";
+    settings.quickActions.forEach((a, i) => {
+      const row = document.createElement("div");
+      row.className = "cell";
+      row.innerHTML = `
+        <button class="qa-del" aria-label="Elimina">${svg("minus")}</button>
+        <span class="tile">${svg(a.icon)}</span>
+        <span class="qa-text"><span class="qa-label"></span><span class="qa-prompt"></span></span>`;
+      row.querySelector(".qa-label").textContent = a.label;
+      row.querySelector(".qa-prompt").textContent = a.prompt;
+      row.querySelector(".qa-del").onclick = () => {
+        pushSettings({ quickActions: settings.quickActions.filter((_, j) => j !== i) });
+        renderQaList();
+        renderQuick();
+      };
+      list.appendChild(row);
+    });
+  }
+
+  function renderSettings() {
+    setSegmented($("effortSeg"), settings.effort);
+    if (document.activeElement !== $("instructions")) $("instructions").value = settings.instructions || "";
+    $("confirmSwitch").checked = !settings.autoApprove;
+    renderQaList();
+  }
+
+  $("effortSeg").querySelectorAll("button").forEach((b) => {
+    b.onclick = () => {
+      setSegmented($("effortSeg"), b.dataset.value);
+      pushSettings({ effort: b.dataset.value });
+    };
+  });
+
+  let instrTimer = null;
+  $("instructions").addEventListener("input", () => {
+    clearTimeout(instrTimer);
+    instrTimer = setTimeout(() => pushSettings({ instructions: $("instructions").value }), 700);
+  });
+
+  $("confirmSwitch").onchange = () => {
+    if (!$("confirmSwitch").checked && !confirm("Senza conferma, IDLE SYNC potrà eseguire comandi del Terminale da solo. Continuare?")) {
+      $("confirmSwitch").checked = true;
+      return;
+    }
+    pushSettings({ autoApprove: !$("confirmSwitch").checked });
+  };
+
+  const deviceInput = $("deviceName");
+  deviceInput.value = local.device;
+  deviceInput.addEventListener("change", () => {
+    local.device = deviceInput.value.trim() || guessedDevice;
+    deviceInput.value = local.device;
+    store.set("device", local.device);
+    sendMsg({ type: "hi", device: local.device });
+  });
+
+  // Nuova azione rapida
+  let qaIcon = "sparkles";
+  const qaForm = $("qaForm");
+  const qaIcons = $("qaIcons");
+  QA_ICONS.forEach((name) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("role", "radio");
+    b.setAttribute("aria-label", name);
+    b.innerHTML = svg(name);
+    b.onclick = () => {
+      qaIcon = name;
+      qaIcons.querySelectorAll("button").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+    };
+    qaIcons.appendChild(b);
+  });
+  $("qaAdd").onclick = () => {
+    qaForm.hidden = false;
+    $("qaAdd").hidden = true;
+    qaIcon = "sparkles";
+    qaIcons.querySelectorAll("button").forEach((x) => x.setAttribute("aria-checked", String(x.getAttribute("aria-label") === qaIcon)));
+    $("qaLabel").focus();
+  };
+  $("qaCancel").onclick = () => {
+    qaForm.hidden = true;
+    $("qaAdd").hidden = false;
+    qaForm.reset();
+  };
+  qaForm.onsubmit = (e) => {
+    e.preventDefault();
+    const label = $("qaLabel").value.trim();
+    const prompt = $("qaPrompt").value.trim();
+    if (!label || !prompt) return;
+    pushSettings({ quickActions: [...settings.quickActions, { id: `qa-${Date.now()}`, label, prompt, icon: qaIcon }] });
+    qaForm.reset();
+    qaForm.hidden = true;
+    $("qaAdd").hidden = false;
+    renderQaList();
+    renderQuick();
+  };
+
+  $("clearHistory").onclick = () => {
+    if (confirm("Cancellare la cronologia su tutti i dispositivi?")) sendMsg({ type: "history:clear" });
   };
 
   // ---------------------------------------------------------------------------
@@ -408,18 +734,46 @@
 
   const lang = navigator.language && navigator.language.startsWith("it") ? navigator.language : "it-IT";
   const speakSwitch = $("speakSwitch");
-  speakSwitch.checked = speakEnabled;
+  const voiceSelect = $("voiceSelect");
+  const rateSlider = $("rateSlider");
+  speakSwitch.checked = local.speak;
+  rateSlider.value = String(local.rate);
+  paintRange(rateSlider);
+
+  function voicesForLang() {
+    if (!("speechSynthesis" in window)) return [];
+    return speechSynthesis.getVoices().filter((v) => v.lang.replace("_", "-").startsWith(lang.slice(0, 2)));
+  }
+
+  function renderVoices() {
+    const voices = voicesForLang();
+    voiceSelect.innerHTML = '<option value="">Automatica</option>';
+    for (const v of voices) {
+      const o = document.createElement("option");
+      o.value = v.voiceURI;
+      o.textContent = v.name;
+      voiceSelect.appendChild(o);
+    }
+    voiceSelect.value = voices.some((v) => v.voiceURI === local.voice) ? local.voice : "";
+  }
+  if ("speechSynthesis" in window) {
+    renderVoices();
+    speechSynthesis.addEventListener?.("voiceschanged", renderVoices);
+  }
 
   function pickVoice() {
-    const voices = speechSynthesis.getVoices().filter((v) => v.lang.replace("_", "-").startsWith(lang.slice(0, 2)));
-    return voices.find((v) => /premium|enhanced|siri/i.test(v.name)) || voices[0];
+    const voices = voicesForLang();
+    return voices.find((v) => v.voiceURI === local.voice)
+      || voices.find((v) => /premium|enhanced|siri/i.test(v.name))
+      || voices[0];
   }
 
   function speak(text) {
-    if (!speakEnabled || !("speechSynthesis" in window)) return;
+    if (!local.speak || !("speechSynthesis" in window)) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = lang;
+    u.rate = local.rate;
     const voice = pickVoice();
     if (voice) u.voice = voice;
     u.onstart = () => { speaking = true; render(); };
@@ -443,11 +797,24 @@
   }
 
   speakSwitch.onchange = () => {
-    speakEnabled = speakSwitch.checked;
-    store.set("speak", speakEnabled ? "on" : "off");
-    if (!speakEnabled) stopSpeaking();
+    local.speak = speakSwitch.checked;
+    store.set("speak", local.speak ? "on" : "off");
+    if (!local.speak) stopSpeaking();
     render();
   };
+  voiceSelect.onchange = () => {
+    local.voice = voiceSelect.value;
+    store.set("voice", local.voice);
+    unlockSpeech();
+    speak("Ciao, questa è la mia voce.");
+  };
+  rateSlider.addEventListener("input", () => paintRange(rateSlider));
+  rateSlider.addEventListener("change", () => {
+    local.rate = Number(rateSlider.value);
+    store.set("rate", String(local.rate));
+    unlockSpeech();
+    speak("Ciao, questa è la mia velocità.");
+  });
 
   // ---------------------------------------------------------------------------
   // Microfono
@@ -480,13 +847,12 @@
       showCard();
       heard.textContent = "";
       steps.innerHTML = "";
-      setReply(finalText + interimText, { pending: true });
+      setReply(finalText + interimText, { pending: true, animate: false });
       orb.kick();
     };
     recognition.onerror = (e) => {
       if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-        showCard();
-        setReply("Consenti l'accesso al microfono in Impostazioni › Safari › Microfono.");
+        toast("Consenti il microfono in Impostazioni › Safari › Microfono.");
       }
     };
     recognition.onend = () => {
@@ -494,6 +860,7 @@
       render();
       const text = (finalText || interimText).trim();
       if (text) sendCommand(text);
+      else if (!busy && !reply.textContent.trim()) hideCard();
     };
 
     try {
@@ -676,29 +1043,22 @@
   })();
 
   // ---------------------------------------------------------------------------
-  // Tema: automatico (segue l'iPhone), chiaro o scuro
+  // Tema: automatico (segue il dispositivo), chiaro o scuro
 
   const systemLight = matchMedia("(prefers-color-scheme: light)");
-  const segButtons = [...document.querySelectorAll("[data-theme-pref]")];
-  const segThumb = document.querySelector(".seg-thumb");
-  let themePref = store.get("theme") || "auto";
 
   function applyTheme() {
-    const resolved = themePref === "auto" ? (systemLight.matches ? "light" : "dark") : themePref;
+    const resolved = local.theme === "auto" ? (systemLight.matches ? "light" : "dark") : local.theme;
     document.documentElement.dataset.theme = resolved;
     $("themeColor").setAttribute("content", resolved === "light" ? "#cfcfcf" : "#151311");
-    segButtons.forEach((b, i) => {
-      const on = b.dataset.themePref === themePref;
-      b.setAttribute("aria-checked", String(on));
-      if (on) segThumb.style.transform = `translateX(${i * 100}%)`;
-    });
+    setSegmented($("themeSeg"), local.theme);
     orb.setTheme(resolved);
   }
 
-  segButtons.forEach((b) => {
+  $("themeSeg").querySelectorAll("button").forEach((b) => {
     b.onclick = () => {
-      themePref = b.dataset.themePref;
-      store.set("theme", themePref);
+      local.theme = b.dataset.value;
+      store.set("theme", local.theme);
       applyTheme();
     };
   });

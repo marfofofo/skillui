@@ -51,7 +51,7 @@ function ensureCertificate() {
   if (!existsSync(key) || !existsSync(cert)) {
     const host = os.hostname().replace(/\.local$/, "");
     const san = ["DNS:localhost", `DNS:${host}.local`, ...lanAddresses().map((ip) => `IP:${ip}`)].join(",");
-    const base = ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", key, "-out", cert, "-days", "825", "-subj", "/CN=AI Remote"];
+    const base = ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", key, "-out", cert, "-days", "825", "-subj", "/CN=IDLE SOCIAL"];
     try {
       execFileSync("openssl", [...base, "-addext", `subjectAltName=${san}`], { stdio: "ignore" });
     } catch {
@@ -201,7 +201,7 @@ server.listen(PORT, "0.0.0.0", () => {
   const scheme = USE_HTTPS ? "https" : "http";
   const hosts = lanAddresses();
   const urls = (hosts.length ? hosts : ["localhost"]).map((h) => `${scheme}://${h}:${PORT}/?t=${TOKEN}`);
-  console.log("\n✅ AI Remote attivo. Apri questo indirizzo in Safari sull'iPhone (stessa rete Wi-Fi):\n");
+  console.log("\n✅ IDLE SOCIAL attivo. Apri questo indirizzo in Safari sull'iPhone (stessa rete Wi-Fi):\n");
   for (const u of urls) console.log(`   ${u}`);
   console.log("");
   qrcode.generate(urls[0], { small: true });
